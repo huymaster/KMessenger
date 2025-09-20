@@ -17,13 +17,14 @@ fun main() {
 fun ApplicationEngine.Configuration.environment() {
     connector {
         host = "0.0.0.0"
-        port = 80
+        port = 8080
     }
     configureHTTPS()
 }
 
 fun Application.module() {
     install(SecureLayer)
+    configureDependencyInject()
     configureAdministration()
     configureSecurity()
     configureSerialization()

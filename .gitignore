@@ -3,3 +3,4 @@
 
 # Ignore Gradle build output directory
 build
+/server/src/test/resources/kmessenger-firebase-adminsdk.json

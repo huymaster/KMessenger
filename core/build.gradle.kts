@@ -11,9 +11,7 @@ repositories {
 
 dependencies {
     implementation(libs.gson)
-    implementation(platform(libs.mongo.bom))
-    implementation(libs.mongo.kotlin.coroutine)
-    implementation(libs.mongo.bson.kotlinx)
+    implementation(libs.ktorm)
     testImplementation(kotlin("test"))
 }
 

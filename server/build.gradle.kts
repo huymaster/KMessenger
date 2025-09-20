@@ -26,7 +26,15 @@ dependencies {
     implementation(libs.ktor.server.ssl)
     implementation(libs.ktor.server.netty)
     implementation(libs.logback.classic)
-    implementation(project(":core"))
+    implementation(libs.firebase.admin)
+    implementation(libs.ktorm)
+    implementation(libs.gson)
+    implementation(platform(libs.koin.bom))
+    implementation(libs.koin.core)
+    implementation(libs.koin.ktor)
+    implementation(project(":core")) {
+        isTransitive = false
+    }
     testImplementation(libs.ktor.server.test.host)
     testImplementation(libs.kotlin.test.junit)
 }

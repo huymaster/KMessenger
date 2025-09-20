@@ -9,6 +9,7 @@ import io.ktor.server.plugins.defaultheaders.*
 import io.ktor.server.plugins.hsts.*
 import io.ktor.server.plugins.httpsredirect.*
 import io.ktor.server.plugins.partialcontent.*
+import io.ktor.server.routing.*
 import java.io.File
 import java.security.KeyStore
 
@@ -21,7 +22,7 @@ fun Application.configureHTTP() {
     }
     if (keystore.exists() && cert != null)
         install(HttpsRedirect) {
-            sslPort = 443
+            sslPort = 8443
             permanentRedirect = false
             exclude { it.request.headers[HttpHeaders.UserAgent] == "KMessenger-Debug" }
         }
@@ -33,8 +34,9 @@ fun Application.configureHTTP() {
         preload = true
         this.filter { it.request.headers[HttpHeaders.UserAgent] != "KMessenger-Debug" }
     }
+    install(IgnoreTrailingSlash)
     install(DefaultHeaders) {
-        header("X-Engine", "Ktor")
+        header(HttpHeaders.Server, "Ktor v3.3.0")
     }
     install(ConditionalHeaders)
     install(Compression) {
@@ -52,6 +54,6 @@ fun ApplicationEngine.Configuration.configureHTTPS() {
         keyStorePassword = { "062425".toCharArray() },
         privateKeyPassword = { "062425".toCharArray() }
     ) {
-        port = 443
+        port = 8443
     }
 }

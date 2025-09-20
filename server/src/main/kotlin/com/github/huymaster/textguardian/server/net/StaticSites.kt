@@ -22,7 +22,7 @@ fun Application.configureStaticSites() {
         .forEach { it.mkdir() }
     routing {
         get("/web") { resolveFile(call, "index.html") }
-        get("/web/") { call.respondRedirect("/web", false) }
+        get("/{filename}") { resolveFile(call, call.parameters["filename"]) }
         get("/web/{filename}") { resolveFile(call, call.parameters["filename"]) }
     }
 }
@@ -39,7 +39,7 @@ private suspend fun resolveFile(call: RoutingCall, filename: String?) {
     else if (jsExtensions.any { filename.endsWith(it, true) })
         resolveJS(call, filename)
     else {
-        call.respondText(text = "File not found", status = HttpStatusCode.NotFound)
+        call.respondText(text = "File not supported", status = HttpStatusCode.BadRequest)
         return
     }
 }

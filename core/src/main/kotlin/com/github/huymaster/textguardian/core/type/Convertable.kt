@@ -1,8 +1,9 @@
 package com.github.huymaster.textguardian.core.type
 
-import com.google.gson.JsonObject
+import com.google.gson.JsonElement
+import org.ktorm.entity.Entity
 
-sealed interface Convertable<T : Convertable<T>> {
-    fun write(): JsonObject
-    fun read(obj: JsonObject)
+interface Convertable<T : Convertable<T>> : Entity<T> {
+    fun read(obj: JsonElement)
+    fun write(): JsonElement
 }
