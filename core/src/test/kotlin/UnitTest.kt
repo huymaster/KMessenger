@@ -1,22 +1,18 @@
-import com.github.huymaster.textguardian.core.converter.EntityConverterFactory
-import com.github.huymaster.textguardian.core.converter.UserConverter
-import com.github.huymaster.textguardian.core.type.User
-import com.google.gson.JsonParser
+import com.github.huymaster.textguardian.core.dto.BaseDTO
+import com.github.huymaster.textguardian.core.dto.BaseDTOImpl
+import com.github.huymaster.textguardian.core.dto.UserDTO
+import com.github.huymaster.textguardian.core.utils.DEFAULT_OBJECT_MAPPER
 import java.util.*
 import kotlin.test.Test
 
 class UnitTest {
     @Test
     fun testConvertable() {
-        val user = EntityConverterFactory.create<User>(UserConverter())
-        val template = """
-            {
-                "${User.ID_FIELD}": "${UUID.randomUUID()}",
-                "${User.PHONE_NUMBER_FIELD}": "0123456789"
-            }
-        """.trimIndent()
-        val json = JsonParser.parseString(template)
-        user.read(json)
-        println(user.write())
+        val o = BaseDTOImpl.getInstance(UserDTO::class)
+        o.id = UUID.randomUUID()
+        o.phoneNumber = "123"
+        val str = DEFAULT_OBJECT_MAPPER.writeValueAsString(o)
+        println(str)
+        println(DEFAULT_OBJECT_MAPPER.readValue(str, BaseDTO::class.java).toEntity())
     }
 }

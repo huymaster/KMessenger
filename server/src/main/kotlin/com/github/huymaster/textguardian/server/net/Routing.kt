@@ -10,6 +10,8 @@ fun Application.configureRouting() {
         get("/") {
             call.respondRedirect("/web")
         }
+        get("/favicon.ico") { call.respondText("OK") }
+        get("/health") { call.respondText("OK") }
         APIVersion1.register(this)
     }
 }

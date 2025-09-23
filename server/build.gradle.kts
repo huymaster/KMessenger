@@ -16,7 +16,7 @@ dependencies {
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.auth)
     implementation(libs.ktor.server.content.negotiation)
-    implementation(libs.ktor.server.serialization.gson)
+    implementation(libs.ktor.server.serialization.jackson)
     implementation(libs.ktor.server.partial.content)
     implementation(libs.ktor.server.http.redirect)
     implementation(libs.ktor.server.hsts)
@@ -27,11 +27,14 @@ dependencies {
     implementation(libs.ktor.server.netty)
     implementation(libs.logback.classic)
     implementation(libs.firebase.admin)
-    implementation(libs.ktorm)
-    implementation(libs.gson)
     implementation(platform(libs.koin.bom))
     implementation(libs.koin.core)
     implementation(libs.koin.ktor)
+    implementation(libs.koin.annotations)
+    implementation(libs.jackson)
+    implementation(libs.ktorm)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.jackson)
     implementation(project(":core")) {
         isTransitive = false
     }

@@ -21,6 +21,8 @@ class TestFirebase {
             .build()
         val app = FirebaseApp.initializeApp(options)
         val notification = FirebaseMessaging.getInstance(app)
+
+
         val n = Notification.builder()
             .setTitle("Hello")
             .setBody("Ban din nhan thong bao")

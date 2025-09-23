@@ -10,8 +10,10 @@ repositories {
 }
 
 dependencies {
-    implementation(libs.gson)
+    implementation(libs.jackson)
     implementation(libs.ktorm)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.jackson)
     testImplementation(kotlin("test"))
 }
 

@@ -1,5 +1,6 @@
 package com.github.huymaster.textguardian.server.api
 
+import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -18,7 +19,10 @@ abstract class BaseAPI protected constructor(val version: Int) {
 
     fun register(routing: Routing) {
         logger.info("Registering API v$version")
-        routing.route(getApiPath()) { register(this) }
+        routing.route(getApiPath()) {
+            get { call.respondText("API v$version") }
+            register(this)
+        }
     }
 
     protected abstract fun register(route: Route)

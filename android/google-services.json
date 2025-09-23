@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "19334285313",
+    "project_id": "kmessenger-c3976",
+    "storage_bucket": "kmessenger-c3976.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:19334285313:android:b365e1e518770017a01800",
+        "android_client_info": {
+          "package_name": "com.github.huymaster.textguardian"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyABtsUkbMyDxJEZOF2mjOK0dxkVErbRPRc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

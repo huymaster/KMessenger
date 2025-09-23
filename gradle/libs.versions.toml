@@ -1,10 +1,12 @@
 [versions]
 kotlin = "2.2.20"
 
-gson = "2.13.2"
+jackson = "2.20.0"
 mongo = "5.6.0"
 ktorm = "4.1.1"
 koin = "4.1.1"
+koin-annotations = "2.1.0"
+retrofit = "3.0.0"
 
 firebase-admin = "9.6.0"
 firebase-bom = "34.3.0"
@@ -26,7 +28,7 @@ material3 = "1.5.0-alpha04"
 biometric = "1.4.0-alpha02"
 
 [libraries]
-gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+jackson = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
 mongo-bom = { module = "org.mongodb:mongodb-driver-bom", version.ref = "mongo" }
 mongo-kotlin-coroutine = { module = "org.mongodb:mongodb-driver-kotlin-coroutine" }
 mongo-kotlin-sync = { module = "org.mongodb:mongodb-driver-kotlin-sync" }
@@ -35,9 +37,12 @@ ktorm = { module = "org.ktorm:ktorm-core", version.ref = "ktorm" }
 koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin" }
 koin-core = { module = "io.insert-koin:koin-core" }
 koin-ktor = { module = "io.insert-koin:koin-ktor" }
+koin-annotations = { module = "io.insert-koin:koin-annotations", version.ref = "koin-annotations" }
 koin-android = { module = "io.insert-koin:koin-android" }
 koin-android-compat = { module = "io.insert-koin:koin-android-compat" }
 koin-compose = { module = "io.insert-koin:koin-androidx-compose" }
+retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
+retrofit-converter-jackson = { module = "com.squareup.retrofit2:converter-jackson", version.ref = "retrofit" }
 
 firebase-admin = { module = "com.google.firebase:firebase-admin", version.ref = "firebase-admin" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase-bom" }
@@ -48,7 +53,7 @@ ktor-server-rate-limiting = { module = "io.github.flaxoos:ktor-server-rate-limit
 ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
 ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor" }
 ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor" }
-ktor-server-serialization-gson = { module = "io.ktor:ktor-serialization-gson", version.ref = "ktor" }
+ktor-server-serialization-jackson = { module = "io.ktor:ktor-serialization-jackson", version.ref = "ktor" }
 ktor-server-partial-content = { module = "io.ktor:ktor-server-partial-content", version.ref = "ktor" }
 ktor-server-http-redirect = { module = "io.ktor:ktor-server-http-redirect", version.ref = "ktor" }
 ktor-server-hsts = { module = "io.ktor:ktor-server-hsts", version.ref = "ktor" }

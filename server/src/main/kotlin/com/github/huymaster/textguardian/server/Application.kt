@@ -4,13 +4,18 @@ import com.github.huymaster.textguardian.server.net.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import kotlin.system.exitProcess
+
+lateinit var server: EmbeddedServer<*, *>
 
 fun main() {
-    embeddedServer(
+    server = embeddedServer(
         factory = Netty,
         configure = { environment() },
         module = Application::module
-    ).start(wait = true)
+    )
+    server.addShutdownHook { exitProcess(0) }
+    server.start(true)
 }
 
 
@@ -19,15 +24,14 @@ fun ApplicationEngine.Configuration.environment() {
         host = "0.0.0.0"
         port = 8080
     }
-    configureHTTPS()
 }
 
 fun Application.module() {
+    configureSerialization()
     install(SecureLayer)
     configureDependencyInject()
     configureAdministration()
     configureSecurity()
-    configureSerialization()
     configureStaticSites()
     configureHTTP()
     configureRouting()
