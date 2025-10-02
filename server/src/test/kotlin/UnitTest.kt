@@ -1,19 +1,19 @@
 package com.github.huymaster
 
-import com.github.huymaster.textguardian.core.dto.UserDTO
-import kotlinx.coroutines.runBlocking
-import java.util.*
-import kotlin.test.Test
+import com.github.huymaster.textguardian.core.di.SharedModule
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.RegisterExtension
+import org.koin.test.KoinTest
+import org.koin.test.junit5.KoinTestExtension
 
-class UnitTest {
-    @Test
-    fun test() {
-        runBlocking { suspendTest() }
+class UnitTest : KoinTest {
+    @JvmField
+    @RegisterExtension
+    val ext = KoinTestExtension.create {
+        modules(SharedModule.api, SharedModule.security, SharedModule.objectMapper)
     }
 
-    private suspend fun suspendTest() {
-        val user = UserDTO()
-        user.id = UUID.randomUUID()
-        user.phoneNumber = ""
+    @Test
+    fun test() {
     }
 }

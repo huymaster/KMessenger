@@ -7,7 +7,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import com.github.huymaster.textguardian.R
+import com.github.huymaster.textguardian.android.R
 
 val ubuntuLight = Font(R.font.ubuntu_light, weight = FontWeight.Light)
 val ubuntuLightItalic = Font(R.font.ubuntu_light_italic, weight = FontWeight.Light, style = FontStyle.Italic)

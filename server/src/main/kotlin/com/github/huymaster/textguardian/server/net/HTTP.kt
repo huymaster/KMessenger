@@ -11,10 +11,10 @@ import io.ktor.server.routing.*
 
 fun Application.configureHTTP() {
     install(PartialContent) {
-        maxRangeCount = 3600
+        maxRangeCount = 64
     }
     install(HSTS) {
-        maxAgeInSeconds = 30
+        maxAgeInSeconds = 3600
         includeSubDomains = true
         this.filter { it.request.headers[HttpHeaders.UserAgent] != "KMessenger-Debug" }
     }

@@ -6,7 +6,9 @@ import com.github.huymaster.textguardian.core.entity.CredentialEntity
 import org.ktorm.entity.Entity
 import java.util.*
 
-class CredentialDTO : BaseDTOImpl<CredentialEntity>() {
+class CredentialDTO(
+    entity: CredentialEntity? = null
+) : BaseDTOImpl<CredentialEntity>(entity) {
     companion object {
         private val encoder = Base64.getEncoder()
         private val decoder = Base64.getDecoder()
@@ -42,9 +44,9 @@ class CredentialDTO : BaseDTOImpl<CredentialEntity>() {
 
     override fun toDTO(entity: CredentialEntity): BaseDTO<CredentialEntity> {
         return CredentialDTO().apply {
-            id = entity.id
-            password = entity.password
-            key = entity.key
+            this.id = entity.id
+            this.password = entity.password
+            this.key = entity.key
         }
     }
 

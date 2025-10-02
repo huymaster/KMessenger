@@ -6,9 +6,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.databind.cfg.JsonNodeFeature
-import com.fasterxml.jackson.databind.module.SimpleModule
 import com.github.huymaster.textguardian.core.adapter.BaseDTOAdapter
-import com.github.huymaster.textguardian.core.dto.BaseDTO
 
 fun initObjectMapper() = initObjectMapper(ObjectMapper())
 
@@ -39,10 +37,8 @@ fun ObjectMapper.init(): ObjectMapper {
     configure(JsonGenerator.Feature.IGNORE_UNKNOWN, true)
     configure(JsonGenerator.Feature.WRITE_HEX_UPPER_CASE, true)
 
-    val module = SimpleModule()
-    module.addSerializer(BaseDTO::class.java, BaseDTOAdapter.BaseDTOSerializer())
-    module.addDeserializer(BaseDTO::class.java, BaseDTOAdapter.BaseDTODeserializer())
-    registerModule(module)
+    registerModule(BaseDTOAdapter)
+    findAndRegisterModules()
 
     return this
 }

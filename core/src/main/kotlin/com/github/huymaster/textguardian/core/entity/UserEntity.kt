@@ -1,6 +1,7 @@
 package com.github.huymaster.textguardian.core.entity
 
 import org.ktorm.entity.Entity
+import java.time.Instant
 import java.util.*
 
 interface UserEntity : BaseEntity<UserEntity> {
@@ -10,8 +11,8 @@ interface UserEntity : BaseEntity<UserEntity> {
     var phoneNumber: String
     var username: String?
     var displayName: String?
-    var lastSeen: Long
-    var createdAt: Long
+    var lastSeen: Instant
+    var createdAt: Instant
     var avatarUrl: String?
     var bio: String?
 }

@@ -6,8 +6,8 @@ import com.google.firebase.FirebaseOptions
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.Message
 import com.google.firebase.messaging.Notification
+import org.junit.jupiter.api.Test
 import java.io.File
-import kotlin.test.Test
 import kotlin.test.fail
 
 class TestFirebase {

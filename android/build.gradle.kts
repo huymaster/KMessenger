@@ -3,14 +3,15 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.services)
+    alias(libs.plugins.kotzilla)
 }
 
 android {
-    namespace = "com.github.huymaster.textguardian"
+    namespace = "com.github.huymaster.textguardian.android"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.github.huymaster.textguardian"
+        applicationId = "com.github.huymaster.textguardian.android"
         minSdk = 31
         targetSdk = 36
         versionCode = 1
@@ -23,7 +24,6 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -39,11 +39,13 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
+        dataBinding = true
+        viewBinding = true
     }
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -54,9 +56,21 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.icons)
     implementation(libs.androidx.biometric)
+    implementation(libs.tink)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     implementation(libs.firebase.messaging)
+    implementation(libs.jackson)
+    implementation(libs.jackson.module.kotlin)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.scalars)
+    implementation(libs.retrofit.converter.jackson)
+    implementation(platform(libs.koin.bom))
+    implementation(libs.koin.core)
+    implementation(libs.koin.android)
+    implementation(libs.koin.android.compat)
+    implementation(libs.koin.compose)
+    implementation(libs.kotzilla.sdk.compose)
     implementation(project(":core")) {
         isTransitive = false
     }

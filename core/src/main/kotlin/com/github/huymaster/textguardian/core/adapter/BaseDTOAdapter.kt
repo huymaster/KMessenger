@@ -3,14 +3,14 @@ package com.github.huymaster.textguardian.core.adapter
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.*
+import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.github.huymaster.textguardian.core.dto.BaseDTO
 import com.github.huymaster.textguardian.core.dto.BaseDTOImpl
-import com.github.huymaster.textguardian.core.utils.DEFAULT_OBJECT_MAPPER
 import java.util.*
 
-object BaseDTOAdapter {
+object BaseDTOAdapter : SimpleModule() {
     private const val IDENTIFIER_FIELD = "identifier"
     private const val DATA_FIELD = "data"
     private val classloader: ClassLoader = BaseDTOAdapter::class.java.classLoader
@@ -18,11 +18,20 @@ object BaseDTOAdapter {
     private val encoder = Base64.getEncoder()
     private val decoder = Base64.getDecoder()
 
+    init {
+        addSerializer(BaseDTO::class.java, BaseDTOSerializer())
+        addDeserializer(BaseDTO::class.java, BaseDTODeserializer())
+        addAbstractTypeMapping(BaseDTO::class.java, BaseDTOImpl::class.java)
+    }
+
     private fun String.encode(): String =
         encoder.encodeToString(this.toByteArray(Charsets.UTF_8))
 
     private fun String.decode(): String =
         String(decoder.decode(this), Charsets.UTF_8)
+
+    private fun readResolve(): Any = BaseDTOAdapter
+
 
     class BaseDTOSerializer : JsonSerializer<BaseDTO<*>>() {
         override fun serialize(
@@ -46,16 +55,14 @@ object BaseDTOAdapter {
         private fun writeData(value: BaseDTO<*>, gen: JsonGenerator) {
             val node = ObjectNode(JsonNodeFactory.instance)
             value.write(node)
-            val nodeString = node.toString()
-            val encodedNodeString = nodeString.encode()
 
             gen.writeFieldName(DATA_FIELD)
-            gen.writeString(encodedNodeString)
+            gen.writeTree(node)
         }
     }
 
     @Suppress("UNCHECKED_CAST")
-    class BaseDTODeserializer : JsonDeserializer<BaseDTO<*>?>() {
+    class BaseDTODeserializer : JsonDeserializer<BaseDTO<*>>() {
         override fun deserialize(
             parser: JsonParser,
             ctx: DeserializationContext?
@@ -65,9 +72,7 @@ object BaseDTOAdapter {
             val classname = identifier.decode()
             val clazz = classloader.loadClass(classname) as Class<BaseDTO<*>>
             val dto = BaseDTOImpl.getInstance(clazz)
-            val nodeString = root.get(DATA_FIELD).asText()
-            val decodedNodeString = nodeString.decode()
-            val node = DEFAULT_OBJECT_MAPPER.readTree(decodedNodeString)
+            val node = root.get(DATA_FIELD)
             dto.read(node)
             return dto
         }

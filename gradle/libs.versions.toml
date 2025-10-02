@@ -5,8 +5,11 @@ jackson = "2.20.0"
 mongo = "5.6.0"
 ktorm = "4.1.1"
 koin = "4.1.1"
+kotzilla = "1.2.2"
 koin-annotations = "2.1.0"
 retrofit = "3.0.0"
+postgresql = "42.7.8"
+bouncyCastle = "1.82"
 
 firebase-admin = "9.6.0"
 firebase-bom = "34.3.0"
@@ -18,20 +21,23 @@ ktor-plugin = "3.3.0"
 agp = "8.12.3"
 logback = "1.5.18"
 coreKtx = "1.17.0"
+tink = "1.18.0"
 junit = "4.13.2"
+junit5 = "6.0.0"
 junitVersion = "1.3.0"
 espressoCore = "3.7.0"
 lifecycleRuntimeKtx = "2.9.4"
 activityCompose = "1.11.0"
-composeBom = "2025.09.00"
+composeBom = "2025.09.01"
 material3 = "1.5.0-alpha04"
 biometric = "1.4.0-alpha02"
 
 [libraries]
 jackson = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
+jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
 mongo-bom = { module = "org.mongodb:mongodb-driver-bom", version.ref = "mongo" }
 mongo-kotlin-coroutine = { module = "org.mongodb:mongodb-driver-kotlin-coroutine" }
-mongo-kotlin-sync = { module = "org.mongodb:mongodb-driver-kotlin-sync" }
+mongo-kotlin-extenstions = { module = "org.mongodb:mongodb-driver-kotlin-extensions" }
 mongo-bson-kotlinx = { module = "org.mongodb:bson-kotlinx" }
 ktorm = { module = "org.ktorm:ktorm-core", version.ref = "ktorm" }
 koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin" }
@@ -41,8 +47,17 @@ koin-annotations = { module = "io.insert-koin:koin-annotations", version.ref = "
 koin-android = { module = "io.insert-koin:koin-android" }
 koin-android-compat = { module = "io.insert-koin:koin-android-compat" }
 koin-compose = { module = "io.insert-koin:koin-androidx-compose" }
+koin-test = { module = "io.insert-koin:koin-test" }
+koin-test-junit5 = { module = "io.insert-koin:koin-test-junit5" }
+kotzilla-sdk-compose = { group = "io.kotzilla", name = "kotzilla-sdk-compose", version.ref = "kotzilla" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
+retrofit-converter-scalars = { module = "com.squareup.retrofit2:converter-scalars", version.ref = "retrofit" }
 retrofit-converter-jackson = { module = "com.squareup.retrofit2:converter-jackson", version.ref = "retrofit" }
+postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
+bouncyCastle = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncyCastle" }
+junit5-bom = { module = "org.junit:junit-bom", version.ref = "junit5" }
+junit5-api = { module = "org.junit.jupiter:junit-jupiter-api" }
+junit5-platform = { module = "org.junit.platform:junit-platform-launcher" }
 
 firebase-admin = { module = "com.google.firebase:firebase-admin", version.ref = "firebase-admin" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase-bom" }
@@ -52,6 +67,7 @@ firebase-messaging = { module = "com.google.firebase:firebase-messaging" }
 ktor-server-rate-limiting = { module = "io.github.flaxoos:ktor-server-rate-limiting", version = "2.2.1" }
 ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
 ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor" }
+ktor-server-auth-jwt = { module = "io.ktor:ktor-server-auth-jwt", version.ref = "ktor" }
 ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor" }
 ktor-server-serialization-jackson = { module = "io.ktor:ktor-serialization-jackson", version.ref = "ktor" }
 ktor-server-partial-content = { module = "io.ktor:ktor-server-partial-content", version.ref = "ktor" }
@@ -64,10 +80,10 @@ ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor"
 ktor-server-ssl = { module = "io.ktor:ktor-network-tls-certificates", version.ref = "ktor" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 ktor-server-test-host = { module = "io.ktor:ktor-server-test-host", version.ref = "ktor" }
-kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
 
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
+tink = { group = "com.google.crypto.tink", name = "tink-android", version.ref = "tink" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
@@ -81,6 +97,8 @@ androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-
 androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
 androidx-compose-icons = { group = "androidx.compose.material", name = "material-icons-extended" }
+androidx-compose-viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose" }
+androidx-compose-runtime = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose" }
 androidx-biometric = { group = "androidx.biometric", name = "biometric-ktx", version.ref = "biometric" }
 
 [plugins]
@@ -89,6 +107,7 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 
 ktor = { id = "io.ktor.plugin", version.ref = "ktor-plugin" }
+kotzilla = { id = "io.kotzilla.kotzilla-plugin", version.ref = "kotzilla" }
 
 android-application = { id = "com.android.application", version.ref = "agp" }
 google-services = { id = "com.google.gms.google-services", version.ref = "google-services" }

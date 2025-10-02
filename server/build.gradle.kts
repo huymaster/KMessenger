@@ -15,6 +15,7 @@ dependencies {
     implementation(libs.ktor.server.rate.limiting)
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.auth)
+    implementation(libs.ktor.server.auth.jwt)
     implementation(libs.ktor.server.content.negotiation)
     implementation(libs.ktor.server.serialization.jackson)
     implementation(libs.ktor.server.partial.content)
@@ -29,17 +30,29 @@ dependencies {
     implementation(libs.firebase.admin)
     implementation(platform(libs.koin.bom))
     implementation(libs.koin.core)
-    implementation(libs.koin.ktor)
     implementation(libs.koin.annotations)
+    implementation(libs.koin.ktor)
     implementation(libs.jackson)
+    implementation(libs.jackson.module.kotlin)
     implementation(libs.ktorm)
     implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.scalars)
     implementation(libs.retrofit.converter.jackson)
+    implementation(libs.postgresql)
+    implementation(libs.bouncyCastle)
+    implementation(platform(libs.mongo.bom))
+    implementation(libs.mongo.kotlin.coroutine)
+    implementation(libs.mongo.kotlin.extenstions)
+    implementation(libs.mongo.bson.kotlinx)
     implementation(project(":core")) {
         isTransitive = false
     }
     testImplementation(libs.ktor.server.test.host)
-    testImplementation(libs.kotlin.test.junit)
+    testImplementation(libs.koin.test)
+    testImplementation(libs.koin.test.junit5)
+    testImplementation(platform(libs.junit5.bom))
+    testImplementation(libs.junit5.api)
+    testRuntimeOnly(libs.junit5.platform)
 }
 
 tasks.jar {
@@ -59,4 +72,16 @@ tasks.register<Exec>("runServer") {
     val jarPath = tasks.jar.get().outputs.files.singleFile
     commandLine("authbind", "--deep", "java", "-jar", "$jarPath")
     workingDir = file(".").parentFile
+}
+
+repositories {
+    mavenCentral()
+}
+
+kotlin {
+    jvmToolchain(21)
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
 }

@@ -7,7 +7,9 @@ import java.lang.reflect.Constructor
 import java.lang.reflect.Modifier
 import kotlin.reflect.KClass
 
-abstract class BaseDTOImpl<E : BaseEntity<E>>() : BaseDTO<E> {
+abstract class BaseDTOImpl<E : BaseEntity<E>>(
+    entity: E? = null
+) : BaseDTO<E> {
     companion object DTOUtils {
         private val cache = mutableListOf<Class<out BaseDTO<*>>>()
 
@@ -45,17 +47,18 @@ abstract class BaseDTOImpl<E : BaseEntity<E>>() : BaseDTO<E> {
         }
 
         private fun <E : BaseEntity<E>> checkConstructor(clazz: Class<out BaseDTO<E>>) {
-            val constructor: Constructor<out BaseDTO<E>?> = clazz.getDeclaredConstructor()
+            val constructor: Constructor<out BaseDTO<E>?> = runCatching { clazz.getDeclaredConstructor() }.getOrNull()
                 ?: throw IllegalArgumentException("Class $clazz must have a default constructor")
             if (!Modifier.isPublic(constructor.modifiers))
-                throw IllegalArgumentException("Constructor of class $clazz must be public")
+                throw IllegalArgumentException("Non-argument constructor of class $clazz must be public")
             if (!constructor.canAccess(null) && !constructor.trySetAccessible())
-                throw IllegalArgumentException("Constructor of class $clazz must be accessible")
+                throw IllegalArgumentException("Non-argument constructor of class $clazz must be accessible")
         }
     }
 
     init {
         check(javaClass)
+        if (entity != null) importFrom(entity)
     }
 
     protected fun JsonNode.getOrNull(member: String): JsonNode? {

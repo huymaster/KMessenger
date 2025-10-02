@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:19334285313:android:b365e1e518770017a01800",
+        "mobilesdk_app_id": "1:19334285313:android:5742efba8de2af03a01800",
         "android_client_info": {
-          "package_name": "com.github.huymaster.textguardian"
+          "package_name": "com.github.huymaster.textguardian.android"
         }
       },
       "oauth_client": [],
