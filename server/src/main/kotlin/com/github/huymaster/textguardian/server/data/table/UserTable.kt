@@ -6,8 +6,8 @@ import org.ktorm.schema.uuid
 import org.ktorm.schema.varchar
 
 object UserTable : BaseTable<UserEntity>("user") {
-    val id = uuid("user_id").primaryKey()
-        .bindTo { it.id }
+    val userId = uuid("user_id").primaryKey()
+        .bindTo { it.userId }
     val phoneNumber = varchar("phone_number")
         .bindTo { it.phoneNumber }
     val username = varchar("username")

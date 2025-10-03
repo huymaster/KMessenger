@@ -8,7 +8,7 @@ import java.util.*
 interface UserTokenEntity : BaseEntity<UserTokenEntity> {
     companion object : Entity.Factory<UserTokenEntity>()
 
-    var id: UUID
+    var userId: UUID
     var refreshToken: String
     var deviceInfo: String?
     var expiresAt: Instant

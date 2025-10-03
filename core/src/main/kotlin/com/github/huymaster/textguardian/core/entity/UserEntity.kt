@@ -7,7 +7,7 @@ import java.util.*
 interface UserEntity : BaseEntity<UserEntity> {
     companion object : Entity.Factory<UserEntity>()
 
-    var id: UUID
+    var userId: UUID
     var phoneNumber: String
     var username: String?
     var displayName: String?

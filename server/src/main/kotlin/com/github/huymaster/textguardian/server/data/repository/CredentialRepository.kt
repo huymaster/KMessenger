@@ -40,7 +40,7 @@ class CredentialRepository() : BaseRepository<CredentialEntity, CredentialTable>
         checkCredential(user, passwordToCheck.toCharArray())
 
     suspend fun checkCredential(user: UserEntity, passwordToCheck: CharArray): Boolean {
-        val entity = find { it.id eq user.id } ?: return false
+        val entity = find { it.userId eq user.userId } ?: return false
         val keySpec = PBEKeySpec(passwordToCheck, entity.key, ITERATIONS, KEY_LENGTH)
         passwordToCheck.fill(' ')
         val hash = secretKeyFactory.generateSecret(keySpec).encoded
@@ -57,7 +57,7 @@ class CredentialRepository() : BaseRepository<CredentialEntity, CredentialTable>
         val hashedPassword = hashPassword(password.clone(), newSalt)
 
         val entity = CredentialEntity().apply {
-            this.id = user.id
+            this.userId = user.userId
             this.key = newSalt
             this.password = hashedPassword
         }

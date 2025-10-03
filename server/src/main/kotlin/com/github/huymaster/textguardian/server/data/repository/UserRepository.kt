@@ -19,7 +19,7 @@ class UserRepository() : BaseRepository<UserEntity, UserTable>(UserTable) {
     suspend fun newUser(phoneNumber: String): UserEntity? {
         validatePhoneNumber(phoneNumber)
         val entity = UserEntity()
-        entity.id = UUID.randomUUID()
+        entity.userId = UUID.randomUUID()
         entity.phoneNumber = phoneNumber
         entity.lastSeen = Instant.now()
         entity.createdAt = Instant.now()
@@ -28,7 +28,7 @@ class UserRepository() : BaseRepository<UserEntity, UserTable>(UserTable) {
     }
 
     suspend fun findUserById(id: UUID): UserEntity? {
-        return find { it.id eq id }
+        return find { it.userId eq id }
     }
 
     suspend fun findUserByPhoneNumber(phoneNumber: String): UserEntity? {

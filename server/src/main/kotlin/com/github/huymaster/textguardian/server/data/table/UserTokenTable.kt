@@ -7,8 +7,8 @@ import org.ktorm.schema.uuid
 import org.ktorm.schema.varchar
 
 object UserTokenTable : BaseTable<UserTokenEntity>("user_token") {
-    val id = uuid("user_id")
-        .bindTo { it.id }
+    val userId = uuid("user_id")
+        .bindTo { it.userId }
     val refreshToken = varchar("refresh_token").primaryKey()
         .bindTo { it.refreshToken }
     val deviceInfo = varchar("device_info")

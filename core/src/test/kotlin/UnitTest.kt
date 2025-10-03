@@ -9,7 +9,7 @@ class UnitTest {
     @Test
     fun testConvertable() {
         val o = BaseDTOImpl.getInstance(UserDTO::class)
-        o.id = UUID.randomUUID()
+        o.userId = UUID.randomUUID()
         o.phoneNumber = "123"
         val str = DEFAULT_OBJECT_MAPPER.writeValueAsString(o)
         println(str)
