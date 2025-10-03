@@ -5,8 +5,8 @@ import org.ktorm.schema.bytes
 import org.ktorm.schema.uuid
 
 object CredentialTable : BaseTable<CredentialEntity>("credential") {
-    val id = uuid("user_id").primaryKey()
-        .bindTo { it.id }
+    val userId = uuid("user_id").primaryKey()
+        .bindTo { it.userId }
     val password = bytes("password")
         .bindTo { it.password }
     val key = bytes("key")

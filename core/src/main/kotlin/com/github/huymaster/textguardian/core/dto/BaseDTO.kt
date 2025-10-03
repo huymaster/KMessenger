@@ -15,6 +15,6 @@ interface BaseDTO<E : BaseEntity<E>> {
 
     fun toEntity(): E
     fun toDTO(entity: E): BaseDTO<E>
-    fun mergeTo(entity: E)
+    fun exportTo(entity: E)
     fun importFrom(entity: E)
 }

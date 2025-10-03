@@ -41,7 +41,7 @@ class UserTokenRepository() : BaseRepository<UserTokenEntity, UserTokenTable>(Us
 
     suspend fun createRefreshToken(user: UserEntity, deviceInfo: String? = null): UserTokenEntity? {
         val entity = UserTokenEntity().apply {
-            this.id = user.id
+            this.userId = user.userId
             this.refreshToken = generateRefreshToken()
             this.deviceInfo = deviceInfo
             this.expiresAt = Instant.now().plus(30, ChronoUnit.DAYS)
@@ -53,12 +53,12 @@ class UserTokenRepository() : BaseRepository<UserTokenEntity, UserTokenTable>(Us
     suspend fun createAccessToken(refreshToken: String): String {
         if (!validateToken(refreshToken)) throw IllegalArgumentException("Invalid refresh token")
         val entity = find { it.refreshToken eq refreshToken } ?: throw IllegalArgumentException("Invalid refresh token")
-        val userId = entity.id
+        val userId = entity.userId
         return generateAccessToken(userId)
     }
 
     suspend fun getTokens(user: UserEntity): List<UserTokenEntity> {
-        val predicate: (UserTokenTable) -> ColumnDeclaring<Boolean> = { it.id eq user.id }
+        val predicate: (UserTokenTable) -> ColumnDeclaring<Boolean> = { it.userId eq user.userId }
         return findAll(predicate)
     }
 

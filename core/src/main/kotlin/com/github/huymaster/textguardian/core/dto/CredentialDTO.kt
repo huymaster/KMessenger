@@ -18,25 +18,25 @@ class CredentialDTO(
         const val KEY_FIELD = "key"
     }
 
-    lateinit var id: UUID
+    lateinit var userId: UUID
     lateinit var password: ByteArray
     lateinit var key: ByteArray
 
     override fun write(output: ObjectNode) {
-        output.put(ID_FIELD, id.toString())
+        output.put(ID_FIELD, userId.toString())
         output.put(PASSWORD_FIELD, encoder.encodeToString(password))
         output.put(KEY_FIELD, encoder.encodeToString(key))
     }
 
     override fun read(input: JsonNode) {
-        id = UUID.fromString(input.getOrThrow(ID_FIELD).asText())
+        userId = UUID.fromString(input.getOrThrow(ID_FIELD).asText())
         password = decoder.decode(input.getOrThrow(PASSWORD_FIELD).asText())
         key = decoder.decode(input.getOrThrow(KEY_FIELD).asText())
     }
 
     override fun toEntity(): CredentialEntity {
         return Entity.create<CredentialEntity>().apply {
-            this.id = this@CredentialDTO.id
+            this.userId = this@CredentialDTO.userId
             this.password = this@CredentialDTO.password
             this.key = this@CredentialDTO.key
         }
@@ -44,20 +44,20 @@ class CredentialDTO(
 
     override fun toDTO(entity: CredentialEntity): BaseDTO<CredentialEntity> {
         return CredentialDTO().apply {
-            this.id = entity.id
+            this.userId = entity.userId
             this.password = entity.password
             this.key = entity.key
         }
     }
 
-    override fun mergeTo(entity: CredentialEntity) {
-        entity.id = id
+    override fun exportTo(entity: CredentialEntity) {
+        entity.userId = userId
         entity.password = password
         entity.key = key
     }
 
     override fun importFrom(entity: CredentialEntity) {
-        id = entity.id
+        userId = entity.userId
         password = entity.password
         key = entity.key
     }

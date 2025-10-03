@@ -18,14 +18,14 @@ class UserTokenDTO(
         const val IS_REVOKED_FIELD = "isRevoked"
     }
 
-    lateinit var id: UUID
+    lateinit var userId: UUID
     lateinit var refreshToken: String
     var deviceInfo: String? = null
     lateinit var expiresAt: Instant
     var isRevoked: Boolean = false
 
     override fun write(output: ObjectNode) {
-        output.put(ID_FIELD, id.toString())
+        output.put(ID_FIELD, userId.toString())
         output.put(REFRESH_TOKEN_FIELD, refreshToken)
         output.put(DEVICE_INFO_FIELD, deviceInfo)
         output.put(EXPIRES_AT_FIELD, expiresAt.toEpochMilli())
@@ -33,7 +33,7 @@ class UserTokenDTO(
     }
 
     override fun read(input: JsonNode) {
-        id = UUID.fromString(input.getOrThrow(ID_FIELD).asText())
+        userId = UUID.fromString(input.getOrThrow(ID_FIELD).asText())
         refreshToken = input.getOrThrow(REFRESH_TOKEN_FIELD).asText()
         deviceInfo = input.getOrNull(DEVICE_INFO_FIELD)?.asText()
         expiresAt = input.getOrDefault(EXPIRES_AT_FIELD, 0L).asLong().let { Instant.ofEpochMilli(it) }
@@ -41,7 +41,7 @@ class UserTokenDTO(
     }
 
     override fun toEntity(): UserTokenEntity = Entity.create<UserTokenEntity>().apply {
-        this.id = this@UserTokenDTO.id
+        this.userId = this@UserTokenDTO.userId
         this.refreshToken = this@UserTokenDTO.refreshToken
         this.deviceInfo = this@UserTokenDTO.deviceInfo
         this.expiresAt = this@UserTokenDTO.expiresAt
@@ -49,15 +49,15 @@ class UserTokenDTO(
     }
 
     override fun toDTO(entity: UserTokenEntity): BaseDTO<UserTokenEntity> = UserTokenDTO().apply {
-        this.id = entity.id
+        this.userId = entity.userId
         this.refreshToken = entity.refreshToken
         this.deviceInfo = entity.deviceInfo
         this.expiresAt = entity.expiresAt
         this.isRevoked = entity.isRevoked
     }
 
-    override fun mergeTo(entity: UserTokenEntity) {
-        entity.id = id
+    override fun exportTo(entity: UserTokenEntity) {
+        entity.userId = userId
         entity.refreshToken = refreshToken
         entity.deviceInfo = deviceInfo
         entity.expiresAt = expiresAt
@@ -65,7 +65,7 @@ class UserTokenDTO(
     }
 
     override fun importFrom(entity: UserTokenEntity) {
-        id = entity.id
+        userId = entity.userId
         refreshToken = entity.refreshToken
         deviceInfo = entity.deviceInfo
         expiresAt = entity.expiresAt

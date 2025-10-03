@@ -21,7 +21,7 @@ class UserDTO(
         const val BIO_FIELD = "bio"
     }
 
-    lateinit var id: UUID
+    lateinit var userId: UUID
     lateinit var phoneNumber: String
     var username: String? = null
     var displayName: String? = null
@@ -31,7 +31,7 @@ class UserDTO(
     var bio: String? = null
 
     override fun write(output: ObjectNode) {
-        output.put(ID_FIELD, id.toString())
+        output.put(ID_FIELD, userId.toString())
         output.put(PHONE_NUMBER_FIELD, phoneNumber)
         output.put(USERNAME_FIELD, username)
         output.put(DISPLAY_NAME_FIELD, displayName)
@@ -42,7 +42,7 @@ class UserDTO(
     }
 
     override fun read(input: JsonNode) {
-        id = UUID.fromString(input.getOrThrow(ID_FIELD).asText())
+        userId = UUID.fromString(input.getOrThrow(ID_FIELD).asText())
         phoneNumber = input.getOrThrow(PHONE_NUMBER_FIELD).asText()
         username = input.getOrNull(USERNAME_FIELD)?.asText()
         displayName = input.getOrNull(DISPLAY_NAME_FIELD)?.asText()
@@ -54,7 +54,7 @@ class UserDTO(
 
     override fun toEntity(): UserEntity =
         Entity.create<UserEntity>().apply {
-            this.id = this@UserDTO.id
+            this.userId = this@UserDTO.userId
             this.phoneNumber = this@UserDTO.phoneNumber
             this.username = this@UserDTO.username
             this.displayName = this@UserDTO.displayName
@@ -66,7 +66,7 @@ class UserDTO(
 
     override fun toDTO(entity: UserEntity): BaseDTO<UserEntity> =
         UserDTO().apply {
-            this.id = entity.id
+            this.userId = entity.userId
             this.phoneNumber = entity.phoneNumber
             this.username = entity.username
             this.displayName = entity.displayName
@@ -76,8 +76,8 @@ class UserDTO(
             this.bio = entity.bio
         }
 
-    override fun mergeTo(entity: UserEntity) {
-        entity.id = id
+    override fun exportTo(entity: UserEntity) {
+        entity.userId = userId
         entity.phoneNumber = phoneNumber
         entity.username = username
         entity.displayName = displayName
@@ -88,7 +88,7 @@ class UserDTO(
     }
 
     override fun importFrom(entity: UserEntity) {
-        id = entity.id
+        userId = entity.userId
         phoneNumber = entity.phoneNumber
         username = entity.username
         displayName = entity.displayName
