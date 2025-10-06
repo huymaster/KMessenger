@@ -5,6 +5,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.huymaster.textguardian.android.data.repository.AppSettings
+import com.github.huymaster.textguardian.android.data.repository.AppSettingsManager
 import com.github.huymaster.textguardian.android.ui.state.AuthUiState
 import com.github.huymaster.textguardian.core.api.APIVersion1Service
 import com.github.huymaster.textguardian.core.api.type.LoginRequest
@@ -15,12 +17,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.koin.java.KoinJavaComponent.get
 
 class AuthenticationViewModel : ViewModel() {
     private val _authUiState = MutableStateFlow(AuthUiState())
+    private val settings = get<AppSettingsManager>(AppSettingsManager::class.java)
     private val service = createService(APIVersion1Service::class)
     private val phonePattern = Regex("^0\\d{9}$")
     private val passwordPattern = Regex("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)[A-Za-z\\d]{8,}$")
+
     val authUiState = _authUiState.asStateFlow()
     var allowSwitchMode by mutableStateOf(true)
     var phoneNumber by mutableStateOf("")
@@ -85,6 +90,7 @@ class AuthenticationViewModel : ViewModel() {
                         errorMessage = null
                     )
                 }
+                settings.set(AppSettings.REFRESH_TOKEN, response.body()!!.refreshToken)
                 onPhoneNumberChange("")
                 onPasswordChange("")
             }

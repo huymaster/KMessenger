@@ -31,11 +31,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-    kotlinOptions {
-        jvmTarget = "11"
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
     buildFeatures {
         compose = true
@@ -43,6 +40,21 @@ android {
         dataBinding = true
         viewBinding = true
     }
+
+    packaging {
+        resources {
+            pickFirsts += "/META-INF/DEPENDENCIES"
+            pickFirsts += "/META-INF/{AL2.0,LGPL2.1}"
+            pickFirsts += "/META-INF/io.netty.versions.properties"
+            pickFirsts += "/META-INF/INDEX.LIST"
+        }
+    }
+}
+
+kotlin {
+    compilerOptions {
+    }
+    jvmToolchain(21)
 }
 
 dependencies {
@@ -54,6 +66,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.compose.icons)
     implementation(libs.androidx.biometric)
     implementation(libs.tink)
@@ -71,9 +84,12 @@ dependencies {
     implementation(libs.koin.android.compat)
     implementation(libs.koin.compose)
     implementation(libs.kotzilla.sdk.compose)
+    implementation(libs.bouncyCastle)
+    implementation(libs.bouncyCastle.bcpkix)
     implementation(project(":core")) {
         isTransitive = false
     }
+    implementation(libs.firebase.appdistribution.gradle)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

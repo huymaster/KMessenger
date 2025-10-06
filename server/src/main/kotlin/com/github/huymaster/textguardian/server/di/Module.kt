@@ -3,6 +3,7 @@ package com.github.huymaster.textguardian.server.di
 import com.github.huymaster.textguardian.server.data.repository.CredentialRepository
 import com.github.huymaster.textguardian.server.data.repository.UserRepository
 import com.github.huymaster.textguardian.server.data.repository.UserTokenRepository
+import com.github.huymaster.textguardian.server.utils.AttachmentCompressor
 import org.koin.dsl.module
 import org.ktorm.database.Database
 import java.util.concurrent.atomic.AtomicReference
@@ -25,5 +26,8 @@ object Module {
         single { UserRepository() }
         single { CredentialRepository() }
         single { UserTokenRepository() }
+    }
+    val utils = module {
+        single { AttachmentCompressor() }
     }
 }

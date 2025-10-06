@@ -1,5 +1,6 @@
 package com.github.huymaster.textguardian.android.ui.activity
 
+import android.content.Intent
 import android.os.Bundle
 import android.os.PersistableBundle
 import androidx.compose.animation.*
@@ -8,9 +9,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -30,43 +29,67 @@ class AuthenticationActivity : BaseActivity() {
         val scope = rememberCoroutineScope()
         val titles = listOf("Login", "Register")
         val pageState = rememberPagerState(pageCount = { titles.size })
+        val state by viewModel.authUiState.collectAsState()
 
         LaunchedEffect(pageState.currentPage) { viewModel.toggleMode() }
+        LaunchedEffect(state.isLoginSuccess) {
+            if (state.isLoginSuccess)
+                navigateToChatList()
+        }
         Scaffold { contentPadding ->
             Surface(
                 Modifier
                     .padding(contentPadding)
                     .imePadding()
             ) {
-                Column(
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    TabHeader(
-                        selected = pageState.currentPage,
-                        state = pageState,
-                        enabled = viewModel.allowSwitchMode,
-                        titles = titles,
-                        onTabClick = { scope.launch { pageState.animateScrollToPage(it) } }
-                    )
-                    HorizontalPager(
-                        state = pageState,
-                        userScrollEnabled = viewModel.allowSwitchMode
+                Crossfade(state.isLoading) { value ->
+                    Column(
+                        modifier = Modifier.fillMaxSize()
                     ) {
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                modifier = Modifier.padding(16.dp),
-                                text = titles[it],
-                                fontSize = MaterialTheme.typography.headlineLarge.fontSize
+                        if (value)
+                            LoadingScreen()
+                        else {
+                            TabHeader(
+                                selected = pageState.currentPage,
+                                state = pageState,
+                                enabled = viewModel.allowSwitchMode,
+                                titles = titles,
+                                onTabClick = { scope.launch { pageState.animateScrollToPage(it) } }
                             )
-                            TabContent(selected = it, model = viewModel)
+                            HorizontalPager(
+                                state = pageState,
+                                userScrollEnabled = viewModel.allowSwitchMode
+                            ) {
+                                Column(
+                                    modifier = Modifier.fillMaxSize(),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    Text(
+                                        modifier = Modifier.padding(16.dp),
+                                        text = titles[it],
+                                        fontSize = MaterialTheme.typography.headlineLarge.fontSize
+                                    )
+                                    TabContent(selected = it, model = viewModel)
+                                }
+                            }
                         }
                     }
                 }
             }
+        }
+    }
+
+    @OptIn(ExperimentalMaterial3ExpressiveApi::class)
+    @Composable
+    private fun LoadingScreen() {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            LoadingIndicator()
+            Text("Loading...")
         }
     }
 
@@ -115,5 +138,12 @@ class AuthenticationActivity : BaseActivity() {
                 1 -> RegisterScreen(model)
             }
         }
+    }
+
+    private fun navigateToChatList() {
+        val intent = Intent(this, `ChatActivity`::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        startActivity(intent)
+        finish()
     }
 }

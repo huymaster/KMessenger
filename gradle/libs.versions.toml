@@ -10,6 +10,8 @@ koin-annotations = "2.1.0"
 retrofit = "3.0.0"
 postgresql = "42.7.8"
 bouncyCastle = "1.82"
+jmimemagic = "0.1.5"
+commons-io = "2.20.0"
 
 firebase-admin = "9.6.0"
 firebase-bom = "34.3.0"
@@ -31,6 +33,9 @@ activityCompose = "1.11.0"
 composeBom = "2025.09.01"
 material3 = "1.5.0-alpha04"
 biometric = "1.4.0-alpha02"
+firebaseAppdistributionGradle = "5.1.1"
+navigationCompose = "2.9.5"
+navigationReimagined = "1.5.0"
 
 [libraries]
 jackson = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
@@ -55,9 +60,9 @@ retrofit-converter-scalars = { module = "com.squareup.retrofit2:converter-scalar
 retrofit-converter-jackson = { module = "com.squareup.retrofit2:converter-jackson", version.ref = "retrofit" }
 postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
 bouncyCastle = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncyCastle" }
-junit5-bom = { module = "org.junit:junit-bom", version.ref = "junit5" }
-junit5-api = { module = "org.junit.jupiter:junit-jupiter-api" }
-junit5-platform = { module = "org.junit.platform:junit-platform-launcher" }
+bouncyCastle-bcpkix = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bouncyCastle" }
+jmimemagic = { module = "net.sf.jmimemagic:jmimemagic", version.ref = "jmimemagic" }
+commonsIo = { module = "commons-io:commons-io", version.ref = "commons-io" }
 
 firebase-admin = { module = "com.google.firebase:firebase-admin", version.ref = "firebase-admin" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase-bom" }
@@ -97,9 +102,13 @@ androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-
 androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
 androidx-compose-icons = { group = "androidx.compose.material", name = "material-icons-extended" }
-androidx-compose-viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose" }
-androidx-compose-runtime = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose" }
+androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 androidx-biometric = { group = "androidx.biometric", name = "biometric-ktx", version.ref = "biometric" }
+
+junit5-bom = { module = "org.junit:junit-bom", version.ref = "junit5" }
+junit5-api = { module = "org.junit.jupiter:junit-jupiter-api" }
+junit5-platform = { module = "org.junit.platform:junit-platform-launcher" }
+firebase-appdistribution-gradle = { group = "com.google.firebase", name = "firebase-appdistribution-gradle", version.ref = "firebaseAppdistributionGradle" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

@@ -25,6 +25,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".ui.activity.AuthenticationActivity" android:exported="false"/>
+        <activity android:name=".ui.activity.ChatActivity" android:exported="false"/>
 
         <service
                 android:name=".service.MessageService"

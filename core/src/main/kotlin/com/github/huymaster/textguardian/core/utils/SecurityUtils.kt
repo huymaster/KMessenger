@@ -2,31 +2,30 @@ package com.github.huymaster.textguardian.core.utils
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider
-import org.bouncycastle.pqc.jcajce.spec.KyberParameterSpec
 import java.io.InputStream
 import java.io.OutputStream
-import java.security.*
+import java.security.KeyFactory
+import java.security.PrivateKey
+import java.security.PublicKey
+import java.security.Security
 import java.security.spec.PKCS8EncodedKeySpec
 import java.security.spec.X509EncodedKeySpec
 
-const val PROVIDER = "BC"
-const val ALGORITHM = "ML-KEM"
+const val KEY_PAIR_ALGORITHM = "KYBER"
+const val SECRET_KEY_ALGORITHM = "KYBER"
+const val SECRET_KEY_SIZE = 256
 
 fun addPQCProvider() {
-    Security.addProvider(BouncyCastleProvider())
-    Security.addProvider(BouncyCastlePQCProvider())
+    if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null)
+        Security.addProvider(BouncyCastleProvider())
+    if (Security.getProvider(BouncyCastlePQCProvider.PROVIDER_NAME) == null)
+        Security.addProvider(BouncyCastlePQCProvider())
 }
-
-fun newKeyPairGenerator(specs: KyberParameterSpec): KeyPairGenerator {
-    return KeyPairGenerator.getInstance(ALGORITHM).apply { initialize(specs) }
-}
-
-fun generateNewKeyPair(keyPairGenerator: KeyPairGenerator): KeyPair = keyPairGenerator.generateKeyPair()
 
 fun loadPublicKey(input: InputStream): PublicKey? {
     val bytes = input.readBytes()
     val spec = X509EncodedKeySpec(bytes)
-    val factory = KeyFactory.getInstance(ALGORITHM, PROVIDER)
+    val factory = KeyFactory.getInstance(KEY_PAIR_ALGORITHM)
     return runCatching { factory.generatePublic(spec) }.getOrNull()
 }
 
@@ -38,7 +37,7 @@ fun savePublicKey(publicKey: PublicKey, output: OutputStream) {
 fun loadPrivateKey(input: InputStream): PrivateKey? {
     val bytes = input.readBytes()
     val spec = PKCS8EncodedKeySpec(bytes)
-    val factory = KeyFactory.getInstance(ALGORITHM, PROVIDER)
+    val factory = KeyFactory.getInstance(KEY_PAIR_ALGORITHM)
     return runCatching { factory.generatePrivate(spec) }.getOrNull()
 }
 

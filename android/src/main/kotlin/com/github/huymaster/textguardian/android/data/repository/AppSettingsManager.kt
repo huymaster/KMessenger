@@ -3,8 +3,6 @@ package com.github.huymaster.textguardian.android.data.repository
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
-import com.github.huymaster.textguardian.android.data.security.CryptoManager
-import org.koin.java.KoinJavaComponent.inject
 
 class AppSettingsManager(context: Context) {
     companion object {
@@ -16,22 +14,18 @@ class AppSettingsManager(context: Context) {
     private val sharedPreferences: SharedPreferences =
         context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
     private val editor: SharedPreferences.Editor get() = sharedPreferences.edit()
-    private val cryptoManager by inject<CryptoManager>(CryptoManager::class.java)
 
     @Suppress("UNCHECKED_CAST")
     fun <T : Any> get(settings: Settings<T>): T {
         if (!exists(settings)) return settings.defaultValue
         try {
-            val encryptedKey = cryptoManager.encrypt(settings.key)
             val value = when (settings.defaultValue) {
-                is Boolean -> sharedPreferences.getBoolean(encryptedKey, settings.defaultValue)
-                is Int -> sharedPreferences.getInt(encryptedKey, settings.defaultValue)
-                is Long -> sharedPreferences.getLong(encryptedKey, settings.defaultValue)
-                is Float -> sharedPreferences.getFloat(encryptedKey, settings.defaultValue)
-                is Double -> sharedPreferences.getLong(encryptedKey, settings.defaultValue.toRawBits()).toDouble()
-                is String -> cryptoManager.decrypt(
-                    sharedPreferences.getString(encryptedKey, settings.defaultValue) ?: ""
-                )
+                is Boolean -> sharedPreferences.getBoolean(settings.key, settings.defaultValue)
+                is Int -> sharedPreferences.getInt(settings.key, settings.defaultValue)
+                is Long -> sharedPreferences.getLong(settings.key, settings.defaultValue)
+                is Float -> sharedPreferences.getFloat(settings.key, settings.defaultValue)
+                is Double -> sharedPreferences.getLong(settings.key, settings.defaultValue.toRawBits()).toDouble()
+                is String -> sharedPreferences.getString(settings.key, settings.defaultValue)
 
                 else -> throw IllegalArgumentException("Unsupported type: ${settings.defaultValue::class.java}")
             } as? T
@@ -46,14 +40,13 @@ class AppSettingsManager(context: Context) {
         if (value == null) return remove(settings)
         if (value == settings.defaultValue) return
         try {
-            val encryptedKey = cryptoManager.encrypt(settings.key)
             when (value) {
-                is Boolean -> editor.putBoolean(encryptedKey, value).apply()
-                is Int -> editor.putInt(encryptedKey, value).apply()
-                is Long -> editor.putLong(encryptedKey, value).apply()
-                is Float -> editor.putFloat(encryptedKey, value).apply()
-                is Double -> editor.putLong(encryptedKey, value.toRawBits()).apply()
-                is String -> editor.putString(encryptedKey, cryptoManager.encrypt(value)).apply()
+                is Boolean -> editor.putBoolean(settings.key, value).apply()
+                is Int -> editor.putInt(settings.key, value).apply()
+                is Long -> editor.putLong(settings.key, value).apply()
+                is Float -> editor.putFloat(settings.key, value).apply()
+                is Double -> editor.putLong(settings.key, value.toRawBits()).apply()
+                is String -> editor.putString(settings.key, value).apply()
                 else -> throw IllegalArgumentException("Unsupported type: ${value::class.java}")
             }
         } catch (e: Exception) {
@@ -65,7 +58,7 @@ class AppSettingsManager(context: Context) {
         editor.remove(settings.key).apply()
     }
 
-    fun <T : Any> exists(settings: Settings<T>) = sharedPreferences.contains(cryptoManager.encrypt(settings.key))
+    fun <T : Any> exists(settings: Settings<T>) = sharedPreferences.contains(settings.key)
 
     fun clear() = editor.clear().apply()
 }

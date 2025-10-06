@@ -9,6 +9,7 @@ import com.github.huymaster.textguardian.server.data.table.UserTokenTable
 import com.github.huymaster.textguardian.server.net.AUDIENCE
 import com.github.huymaster.textguardian.server.net.ISSUER
 import com.github.huymaster.textguardian.server.net.JWT_SECRET
+import org.ktorm.dsl.and
 import org.ktorm.dsl.eq
 import org.ktorm.schema.ColumnDeclaring
 import java.security.SecureRandom
@@ -73,7 +74,8 @@ class UserTokenRepository() : BaseRepository<UserTokenEntity, UserTokenTable>(Us
     }
 
     suspend fun revokeToken(refreshToken: String) {
-        val predicate: (UserTokenTable) -> ColumnDeclaring<Boolean> = { it.refreshToken eq refreshToken }
+        val predicate: (UserTokenTable) -> ColumnDeclaring<Boolean> =
+            { (it.refreshToken eq refreshToken) and (it.isRevoked eq false) }
         updateAll(predicate) { it.isRevoked = true }
     }
 }

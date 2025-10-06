@@ -17,7 +17,7 @@ class MainApplication : Application() {
         startKoin {
             androidLogger()
             androidContext(this@MainApplication)
-            modules(SharedModule.api, SharedModule.objectMapper)
+            modules(SharedModule.api, SharedModule.security, SharedModule.objectMapper)
             modules(Module.application, Module.viewModel)
         }
         FirebaseApp.initializeApp(this)

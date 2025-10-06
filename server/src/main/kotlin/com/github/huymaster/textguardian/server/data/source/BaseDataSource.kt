@@ -47,6 +47,7 @@ abstract class BaseDataSource<E : BaseEntity<E>, T : BaseTable<E>> : KoinCompone
         if (exists(predicate)) {
             val entity = find(predicate)!!
             updater(entity)
+            entity.flushChanges()
             return entity
         } else return null
     }
@@ -54,6 +55,7 @@ abstract class BaseDataSource<E : BaseEntity<E>, T : BaseTable<E>> : KoinCompone
     open suspend fun updateAll(predicate: ((T) -> ColumnDeclaring<Boolean>)? = null, updater: (E) -> Unit): List<E> {
         val entities = findAll(predicate)
         entities.forEach { updater(it) }
+        entities.forEach { it.flushChanges() }
         return entities
     }
 

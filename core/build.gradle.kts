@@ -16,6 +16,7 @@ dependencies {
     implementation(libs.retrofit.converter.scalars)
     implementation(libs.retrofit.converter.jackson)
     implementation(libs.bouncyCastle)
+    implementation(libs.bouncyCastle.bcpkix)
     implementation(platform(libs.koin.bom))
     implementation(libs.koin.core)
     implementation(libs.koin.annotations)
@@ -27,5 +28,5 @@ tasks.test {
 }
 
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(11)
 }
