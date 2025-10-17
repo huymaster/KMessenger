@@ -8,6 +8,7 @@ import io.ktor.server.plugins.defaultheaders.*
 import io.ktor.server.plugins.hsts.*
 import io.ktor.server.plugins.partialcontent.*
 import io.ktor.server.routing.*
+import io.ktor.server.websocket.*
 
 fun Application.configureHTTP() {
     install(PartialContent) {
@@ -17,6 +18,11 @@ fun Application.configureHTTP() {
         maxAgeInSeconds = 3600
         includeSubDomains = true
         this.filter { it.request.headers[HttpHeaders.UserAgent] != "KMessenger-Debug" }
+    }
+    install(WebSockets) {
+        pingPeriodMillis = 5000
+        timeoutMillis = 5000
+        maxFrameSize = 1024 * 1024 * 1024
     }
     install(IgnoreTrailingSlash)
     install(DefaultHeaders) {

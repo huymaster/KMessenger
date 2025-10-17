@@ -1,11 +1,10 @@
 package com.github.huymaster.textguardian.server.di
 
-import com.github.huymaster.textguardian.server.data.repository.CredentialRepository
-import com.github.huymaster.textguardian.server.data.repository.UserRepository
-import com.github.huymaster.textguardian.server.data.repository.UserTokenRepository
+import com.github.huymaster.textguardian.server.data.repository.*
 import com.github.huymaster.textguardian.server.utils.AttachmentCompressor
 import org.koin.dsl.module
 import org.ktorm.database.Database
+import org.ktorm.support.postgresql.PostgreSqlDialect
 import java.util.concurrent.atomic.AtomicReference
 
 object Module {
@@ -14,7 +13,8 @@ object Module {
         get() = Database.connect(
             url = "jdbc:postgresql://localhost:5432/postgres",
             user = "postgres",
-            password = System.getenv("POSTGRESQL_PASSWORD")
+            password = System.getenv("POSTGRESQL_PASSWORD"),
+            dialect = PostgreSqlDialect()
         )
     val database = module {
         factory {
@@ -26,6 +26,10 @@ object Module {
         single { UserRepository() }
         single { CredentialRepository() }
         single { UserTokenRepository() }
+        single { AttachmentRepository() }
+        single { MessageRepository() }
+        single { ConversationRepository() }
+        single { ParticipantRepository() }
     }
     val utils = module {
         single { AttachmentCompressor() }

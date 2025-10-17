@@ -5,6 +5,7 @@ import com.github.huymaster.textguardian.server.data.table.BaseTable
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.ktorm.database.Database
+import org.ktorm.dsl.from
 import org.ktorm.entity.*
 import org.ktorm.schema.ColumnDeclaring
 
@@ -33,6 +34,14 @@ abstract class BaseDataSource<E : BaseEntity<E>, T : BaseTable<E>> : KoinCompone
 
     protected val database: Database by inject()
     protected abstract val table: EntitySequence<E, T>
+
+    open suspend fun newQuery(table: T) = database.from(table)
+
+    open suspend fun <V> useDatabase(block: suspend (Database) -> V) =
+        database.useTransaction { block(database) }
+
+    open suspend fun <V> useTable(block: suspend (EntitySequence<E, T>) -> V) =
+        database.useTransaction { block(table) }
 
     open suspend fun create(entity: E): E? =
         if (table.add(entity) > 0) entity else null

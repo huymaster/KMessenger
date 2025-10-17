@@ -10,4 +10,5 @@ interface ConversationEntity : BaseEntity<ConversationEntity> {
     var conversationId: UUID
     var createdAt: Instant
     var name: String
+    var creator: UUID
 }

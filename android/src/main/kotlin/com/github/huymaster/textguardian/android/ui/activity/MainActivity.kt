@@ -3,97 +3,101 @@ package com.github.huymaster.textguardian.android.ui.activity
 import android.content.Intent
 import android.os.Bundle
 import android.os.PersistableBundle
-import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.layout.*
+import androidx.compose.animation.*
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.github.huymaster.textguardian.android.data.repository.AppSettingsManager
-import com.github.huymaster.textguardian.android.ui.model.ServerHealthModel
-import com.github.huymaster.textguardian.android.ui.state.MainUiState
-import org.koin.androidx.viewmodel.ext.android.viewModel
-import org.koin.core.component.get
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.huymaster.textguardian.android.ui.screen.InitScreen
+import com.github.huymaster.textguardian.android.ui.screen.LoginScreen
+import com.github.huymaster.textguardian.android.ui.screen.RegisterScreen
+import com.github.huymaster.textguardian.android.viewmodel.LoginViewModel
+import com.github.huymaster.textguardian.android.viewmodel.RegisterViewModel
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@ExperimentalMaterial3ExpressiveApi
+@ExperimentalSharedTransitionApi
 class MainActivity : BaseActivity() {
-    private val serverHealthModel: ServerHealthModel by viewModel()
-    private val settings = get<AppSettingsManager>()
-
     @Composable
     override fun Content(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
-        Scaffold { contentPadding ->
-            Surface(modifier = Modifier.padding(contentPadding)) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    ServerHealth()
+        var screen by rememberSaveable { mutableIntStateOf(0) }
+        LaunchedEffect(screen) {
+            if (screen == 2) moveToChatActivity()
+        }
+        Scaffold { paddingValues ->
+            Surface(modifier = Modifier.padding(paddingValues)) {
+                Crossfade(screen) {
+                    when (it) {
+                        0 -> InitScreen(viewModel()) { haveSession ->
+                            screen = if (!haveSession) 1 else 2
+                        }
+
+                        1 -> AuthenticationScreen()
+                    }
                 }
             }
         }
+    }
+
+    private enum class AuthenticationScreen(val tabName: String) {
+        LOGIN("Login"), REGISTER("Register")
     }
 
     @Composable
-    private fun ServerHealth() {
-        val state by serverHealthModel.serverHealthState.collectAsState()
-        LaunchedEffect(Unit) {
-            serverHealthModel.getServerHealth()
+    private fun AuthenticationScreen() {
+        var screen by rememberSaveable { mutableIntStateOf(AuthenticationScreen.LOGIN.ordinal) }
+        val loginModel: LoginViewModel = viewModel()
+        val registerModel: RegisterViewModel = viewModel()
+        LaunchedEffect(screen) {
+            loginModel.resetState()
+            registerModel.resetState()
         }
-        LaunchedEffect(state) {
-            if (state is MainUiState.Success) {
-                if (serverHealthModel.isSessionValid)
-                    navigateToChatList()
-                else
-                    navigateToAuthentication()
-            }
-        }
-        Crossfade(
-            targetState = state
+        Column(
+            modifier = Modifier
+                .scrollable(rememberScrollState(), orientation = Orientation.Vertical)
+                .fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+            SecondaryTabRow(
+                modifier = Modifier.fillMaxWidth(),
+                selectedTabIndex = screen,
             ) {
-                when (it) {
-                    is MainUiState.Loading -> {
-                        LoadingIndicator()
-                        Text("Loading...")
-                    }
+                AuthenticationScreen.entries.forEachIndexed { index, tab ->
+                    Tab(selected = screen == index, onClick = { screen = index }, text = { Text(tab.tabName) })
+                }
+            }
+            SharedTransitionLayout {
+                AnimatedContent(screen, transitionSpec = { fadeIn() togetherWith fadeOut() }) {
+                    when (it) {
+                        AuthenticationScreen.LOGIN.ordinal -> LoginScreen(
+                            loginModel,
+                            this@SharedTransitionLayout,
+                            this,
+                            { screen = AuthenticationScreen.REGISTER.ordinal }
+                        ) { moveToChatActivity() }
 
-                    is MainUiState.ValidatingSession -> {
-                        LoadingIndicator()
-                        Text("Validating session...")
+                        AuthenticationScreen.REGISTER.ordinal -> RegisterScreen(
+                            registerModel,
+                            this@SharedTransitionLayout,
+                            this,
+                            onSwitchToLogin = { screen = AuthenticationScreen.LOGIN.ordinal }
+                        )
                     }
-
-                    is MainUiState.Error -> {
-                        Text(it.message)
-                        TextButton(onClick = { serverHealthModel.getServerHealth() }) {
-                            Text("Retry")
-                        }
-                    }
-
-                    else -> {}
                 }
             }
         }
     }
 
-    private fun navigateToAuthentication() {
-        val intent = Intent(this, AuthenticationActivity::class.java)
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        startActivity(intent)
+    private fun moveToChatActivity() {
         finish()
-    }
-
-    private fun navigateToChatList() {
-        val intent = Intent(this, `ChatActivity`::class.java)
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        startActivity(intent)
-        finish()
+        startActivity(Intent(this, ChatActivity::class.java))
     }
 }

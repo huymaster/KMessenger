@@ -51,7 +51,8 @@ abstract class BaseDTOImpl<E : BaseEntity<E>>(
                 ?: throw IllegalArgumentException("Class $clazz must have a default constructor")
             if (!Modifier.isPublic(constructor.modifiers))
                 throw IllegalArgumentException("Non-argument constructor of class $clazz must be public")
-            if (!constructor.canAccess(null) && !constructor.trySetAccessible())
+            constructor.isAccessible = true
+            if (!constructor.isAccessible)
                 throw IllegalArgumentException("Non-argument constructor of class $clazz must be accessible")
         }
     }

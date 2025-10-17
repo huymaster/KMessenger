@@ -12,4 +12,6 @@ object ConversationTable : BaseTable<ConversationEntity>("conversation") {
         .bindTo { it.createdAt }
     val name = varchar("name")
         .bindTo { it.name }
+    val creator = uuid("creator")
+        .bindTo { it.creator }
 }

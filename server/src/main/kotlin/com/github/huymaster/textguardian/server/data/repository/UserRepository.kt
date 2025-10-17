@@ -34,4 +34,8 @@ class UserRepository() : BaseRepository<UserEntity, UserTable>(UserTable) {
     suspend fun findUserByPhoneNumber(phoneNumber: String): UserEntity? {
         return find { it.phoneNumber eq phoneNumber }
     }
+
+    suspend fun findUserByUsername(username: String): UserEntity? {
+        return find { it.username eq username }
+    }
 }

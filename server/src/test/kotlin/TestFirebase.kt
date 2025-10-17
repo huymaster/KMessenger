@@ -8,6 +8,7 @@ import com.google.firebase.messaging.Message
 import com.google.firebase.messaging.Notification
 import org.junit.jupiter.api.Test
 import java.io.File
+import java.time.Instant
 import kotlin.test.fail
 
 class TestFirebase {
@@ -25,11 +26,15 @@ class TestFirebase {
 
         val n = Notification.builder()
             .setTitle("Hello")
-            .setBody("Ban din nhan thong bao")
+            .setBody(
+                "[${
+                    Instant.ofEpochMilli(Instant.now().toEpochMilli())
+                }] bân đìn nhận thông báo"
+            )
             .build()
         val message = Message.builder()
+            .putData("FUck", "FUck")
             .setNotification(n)
-            .setTopic("broadcast")
             .build()
         notification.send(message)
     }

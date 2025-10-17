@@ -16,4 +16,6 @@ object MessageTable : BaseTable<MessageEntity>("message") {
         .bindTo { it.sendAt }
     val sessionKeys = bytesarray("session_keys")
         .bindTo { it.sessionKeys }
+    val replyTo = uuid("reply_to")
+        .bindTo { it.replyTo }
 }

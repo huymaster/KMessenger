@@ -2,8 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serializer)
     alias(libs.plugins.google.services)
-    alias(libs.plugins.kotzilla)
 }
 
 android {
@@ -63,13 +63,13 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.animation)
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.compose.icons)
     implementation(libs.androidx.biometric)
-    implementation(libs.tink)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     implementation(libs.firebase.messaging)
@@ -83,7 +83,7 @@ dependencies {
     implementation(libs.koin.android)
     implementation(libs.koin.android.compat)
     implementation(libs.koin.compose)
-    implementation(libs.kotzilla.sdk.compose)
+    implementation(libs.ktorm)
     implementation(libs.bouncyCastle)
     implementation(libs.bouncyCastle.bcpkix)
     implementation(project(":core")) {

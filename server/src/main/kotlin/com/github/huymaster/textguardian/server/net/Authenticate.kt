@@ -11,6 +11,7 @@ import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.response.*
 import org.koin.ktor.ext.inject
+import java.time.Instant
 import java.util.*
 
 const val AUTH_NAME = "jwt"
@@ -35,12 +36,19 @@ fun Application.configureAuthentication() {
             }
             validate {
                 val claim: Claim? = it.payload.getClaim(UserDTO.ID_FIELD)
-                if (claim != null && !claim.isNull) {
+                val expireTime = it.expiresAt
+                if (expireTime == null || Date.from(Instant.now()).after(expireTime)) {
+                    respondText("Token expired", status = HttpStatusCode.Unauthorized)
+                    return@validate null
+                }
+                if (claim == null || claim.isNull) {
+                    respondText("Unable to retrive user", status = HttpStatusCode.Unauthorized)
+                    return@validate null
+                } else {
                     val user = runCatching { userRepository.findUserById(UUID.fromString(claim.asString())) }
                     if (user.getOrNull() != null)
                         return@validate JWTPrincipal(it.payload)
                 }
-                null
             }
         }
     }
