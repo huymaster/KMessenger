@@ -4,16 +4,20 @@ import com.github.huymaster.textguardian.core.api.type.AccessToken
 import com.github.huymaster.textguardian.core.api.type.LoginRequest
 import com.github.huymaster.textguardian.core.api.type.RefreshToken
 import com.github.huymaster.textguardian.core.api.type.RegisterRequest
+import com.github.huymaster.textguardian.core.dto.UserDTO
 import com.github.huymaster.textguardian.server.api.APIVersion1.sendErrorResponse
 import com.github.huymaster.textguardian.server.data.repository.CredentialRepository
 import com.github.huymaster.textguardian.server.data.repository.UserRepository
 import com.github.huymaster.textguardian.server.data.repository.UserTokenRepository
 import io.ktor.http.*
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.ktorm.database.Database
+import java.util.*
 
-object AuthenticationAction {
+object AuthenticationController {
     suspend fun registerAction(
         call: RoutingCall,
         request: RegisterRequest,
@@ -79,7 +83,7 @@ object AuthenticationAction {
                 call,
                 "Invalid token",
                 tokenResult.exceptionOrNull(),
-                status = HttpStatusCode.Unauthorized
+                status = HttpStatusCode.NotFound
             )
             return
         }
@@ -94,7 +98,7 @@ object AuthenticationAction {
                 call,
                 "Invalid token",
                 tokenResult.exceptionOrNull(),
-                status = HttpStatusCode.Unauthorized
+                status = HttpStatusCode.NotFound
             )
             return
         }
@@ -102,7 +106,38 @@ object AuthenticationAction {
     }
 
     suspend fun revokeToken(call: RoutingCall, request: RefreshToken, userTokenRepository: UserTokenRepository) {
-        userTokenRepository.revokeToken(request.refreshToken)
-        call.respondText("", status = HttpStatusCode.OK)
+        val principal = call.principal<JWTPrincipal>()
+        val userIdStr = principal?.payload?.getClaim(UserDTO.ID_FIELD)?.asString()
+        if (userIdStr == null) {
+            sendErrorResponse(
+                call,
+                "User not authenticated",
+                status = HttpStatusCode.Unauthorized
+            )
+            return
+        }
+        val res = runCatching { userTokenRepository.validateToken(request.refreshToken) }
+        if (res.isFailure && res.getOrNull() != true) {
+            sendErrorResponse(
+                call,
+                "Invalid token",
+                res.exceptionOrNull(),
+                status = HttpStatusCode.NotFound
+            )
+            return
+        }
+        runCatching { UUID.fromString(userIdStr) }
+            .onFailure {
+                sendErrorResponse(
+                    call,
+                    "Invalid user id",
+                    it,
+                    status = HttpStatusCode.Unauthorized
+                )
+            }
+            .onSuccess {
+                userTokenRepository.revokeToken(it, request.refreshToken)
+                call.respondText("Token revoked", status = HttpStatusCode.OK)
+            }
     }
 }

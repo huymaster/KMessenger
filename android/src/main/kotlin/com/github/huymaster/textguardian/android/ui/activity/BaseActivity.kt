@@ -5,6 +5,7 @@ import android.os.PersistableBundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,6 +17,13 @@ import androidx.compose.ui.Modifier
 import com.github.huymaster.textguardian.android.ui.theme.KMessengerTheme
 import org.koin.core.component.KoinComponent
 
+@ExperimentalMaterial3ExpressiveApi
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalLayoutApi::class,
+    ExperimentalMaterial3ExpressiveApi::class,
+    ExperimentalSharedTransitionApi::class
+)
 abstract class BaseActivity : AppCompatActivity(), KoinComponent {
     final override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,7 +48,6 @@ abstract class BaseActivity : AppCompatActivity(), KoinComponent {
     }
 
     @Composable
-    @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class, ExperimentalMaterial3ExpressiveApi::class)
     protected open fun Content(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
         Scaffold { contentPadding ->
             Surface(

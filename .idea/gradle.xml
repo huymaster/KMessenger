@@ -6,12 +6,12 @@
       <GradleProjectSettings>
         <option name="testRunner" value="CHOOSE_PER_TEST" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
-        <option name="gradleJvm" value="JDK 21 (default-java)" />
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/android" />
             <option value="$PROJECT_DIR$/core" />
+            <option value="$PROJECT_DIR$/jvm" />
             <option value="$PROJECT_DIR$/server" />
           </set>
         </option>

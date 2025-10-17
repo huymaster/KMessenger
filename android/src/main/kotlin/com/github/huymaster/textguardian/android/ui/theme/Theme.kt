@@ -3,7 +3,9 @@ package com.github.huymaster.textguardian.android.ui.theme
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
+import com.github.huymaster.textguardian.android.app.AppSettingsManager
 
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
@@ -17,16 +19,21 @@ private val LightColorScheme = lightColorScheme(
     tertiary = Pink40
 )
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@ExperimentalMaterial3ExpressiveApi
 @Composable
 fun KMessengerTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
+    val theme by AppSettingsManager.Settings.THEME
+    val context = LocalContext.current
+    val darkTheme = when (theme) {
+        AppSettingsManager.Settings.THEME.DARK -> true
+        AppSettingsManager.Settings.THEME.LIGHT -> false
+        else -> isSystemInDarkTheme()
+    }
     val colorScheme = when {
         dynamicColor -> {
-            val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
 
@@ -36,6 +43,7 @@ fun KMessengerTheme(
 
     MaterialExpressiveTheme(
         colorScheme = colorScheme,
+        motionScheme = MotionScheme.expressive(),
         content = content,
         typography = Typography
     )

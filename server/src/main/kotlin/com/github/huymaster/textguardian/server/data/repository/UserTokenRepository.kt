@@ -73,9 +73,9 @@ class UserTokenRepository() : BaseRepository<UserTokenEntity, UserTokenTable>(Us
         return true
     }
 
-    suspend fun revokeToken(refreshToken: String) {
+    suspend fun revokeToken(userId: UUID, refreshToken: String) {
         val predicate: (UserTokenTable) -> ColumnDeclaring<Boolean> =
-            { (it.refreshToken eq refreshToken) and (it.isRevoked eq false) }
+            { (it.refreshToken eq refreshToken) and (it.isRevoked eq false) and (it.userId eq userId) }
         updateAll(predicate) { it.isRevoked = true }
     }
 }

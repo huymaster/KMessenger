@@ -11,7 +11,8 @@ pluginManagement {
         }
         mavenCentral()
         gradlePluginPortal()
-        maven { url = uri("https://maven.pkg.jetbrains.space/public/p/ktor/eap/") }
+        maven("https://maven.pkg.jetbrains.space/public/p/ktor/eap/")
+        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     }
 }
 plugins {
@@ -24,6 +25,7 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
         maven("https://packages.confluent.io/maven/")
+        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     }
 }
 
@@ -32,3 +34,4 @@ rootProject.name = "KMessenger"
 include("server")
 include("android")
 include("core")
+include("jvm")

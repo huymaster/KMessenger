@@ -30,6 +30,18 @@ object BaseDTOAdapter : SimpleModule() {
     private fun String.decode(): String =
         String(decoder.decode(this), Charsets.UTF_8)
 
+    private fun encodeIdentifier(clazz: Class<*>): String {
+        val className = clazz.name.toByteArray()
+        return String(className).encode()
+    }
+
+    private fun decodeIdentifier(encodedClassname: String): Class<*> {
+        val decode = encodedClassname.decode().toByteArray().toMutableList()
+        val className = String(decode.toByteArray())
+        return classloader.loadClass(className)
+    }
+
+
     private fun readResolve(): Any = BaseDTOAdapter
 
 
@@ -47,9 +59,8 @@ object BaseDTOAdapter : SimpleModule() {
 
         private fun writeIdentifier(clazz: Class<*>, gen: JsonGenerator) {
             gen.writeFieldName(IDENTIFIER_FIELD)
-            val classname = classloader.loadClass(clazz.name).name
-            val encodedClassname = classname.encode()
-            gen.writeString(encodedClassname)
+            val identifier = encodeIdentifier(clazz)
+            gen.writeString(identifier)
         }
 
         private fun writeData(value: BaseDTO<*>, gen: JsonGenerator) {
@@ -69,8 +80,7 @@ object BaseDTOAdapter : SimpleModule() {
         ): BaseDTO<*> {
             val root = parser.readValueAsTree<JsonNode>()
             val identifier = root.get(IDENTIFIER_FIELD).asText()
-            val classname = identifier.decode()
-            val clazz = classloader.loadClass(classname) as Class<BaseDTO<*>>
+            val clazz = decodeIdentifier(identifier) as Class<BaseDTO<*>>
             val dto = BaseDTOImpl.getInstance(clazz)
             val node = root.get(DATA_FIELD)
             dto.read(node)

@@ -10,5 +10,4 @@ class AttachmentCompressor : KoinComponent {
     private val root = File(System.getProperty("user.home"), ".kmessenger")
     private val mapFile = File(root, "attachments")
     private val attachmentsMap = mutableMapOf<String, String>()
-
 }

@@ -12,4 +12,5 @@ interface MessageEntity : BaseEntity<MessageEntity> {
     var senderId: UUID
     var sendAt: Instant
     var sessionKeys: Array<ByteArray>
+    var replyTo: UUID?
 }

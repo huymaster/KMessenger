@@ -25,7 +25,7 @@ fun <T : Any> createService(clazz: Class<T>): T {
     val retrofit = Retrofit.Builder()
         .baseUrl(API_BASE_URL)
         .addConverterFactory(ScalarsConverterFactory.create())
-        .addConverterFactory(JacksonConverterFactory.create(initObjectMapper()))
+        .addConverterFactory(JacksonConverterFactory.create(initJsonMapper()))
         .client(client)
         .build()
     return retrofit.create(clazz)

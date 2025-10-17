@@ -15,7 +15,7 @@ class CredentialRepository() : BaseRepository<CredentialEntity, CredentialTable>
         private const val ITERATIONS = 65536
         private const val KEY_LENGTH = 1024
         private const val SALT_SIZE_BYTES = 64
-        private val PASSWORD_REGEX = Regex("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)[A-Za-z\\d]{8,}$")
+        private val PASSWORD_REGEX = Regex("^[\\w_]{6,32}$")
     }
 
     private val secureRandom = SecureRandom()
@@ -23,7 +23,7 @@ class CredentialRepository() : BaseRepository<CredentialEntity, CredentialTable>
 
     private fun validatePassword(password: CharArray) {
         if (!PASSWORD_REGEX.matches(String(password)))
-            throw IllegalArgumentException("Password must contain at least one lowercase letter, one uppercase letter, one digit, and be at least 8 characters long")
+            throw IllegalArgumentException("Password must only word, number and underscore '_' and be between 6 and 32 characters long")
     }
 
     private fun generateSalt(): ByteArray = ByteArray(SALT_SIZE_BYTES).apply {

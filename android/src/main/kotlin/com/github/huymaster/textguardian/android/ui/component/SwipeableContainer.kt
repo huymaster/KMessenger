@@ -88,10 +88,9 @@ private suspend fun PointerInputScope.fling(
                 val velocity = velocityTracker.calculateVelocity()
                 velocityTracker.resetTracking()
                 val sign = if (offsetX.value > 0) 1 else -1
-                val opSign = if (sign == 1) -1 else 1
 
                 val isSwiped = abs(offsetX.value) > screenWidth * swipePercentage
-                val isFling = velocity.x * opSign > flingVelocityThreshold && velocity.x * offsetX.value > 0
+                val isFling = abs(velocity.x) > flingVelocityThreshold && velocity.x * offsetX.value > 0
                 println("isSwiped: $isSwiped, isFling: $isFling")
                 if (isSwiped || isFling) {
                     offsetX.animateTo(screenWidth * sign, tween(150))

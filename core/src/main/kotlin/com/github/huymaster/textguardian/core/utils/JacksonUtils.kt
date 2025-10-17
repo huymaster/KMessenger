@@ -1,18 +1,25 @@
+@file:Suppress("DEPRECATION")
+
 package com.github.huymaster.textguardian.core.utils
 
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.core.JsonParser
+import com.fasterxml.jackson.core.StreamReadFeature
+import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.databind.cfg.JsonNodeFeature
+import com.fasterxml.jackson.databind.json.JsonMapper
 import com.github.huymaster.textguardian.core.adapter.BaseDTOAdapter
+import com.github.huymaster.textguardian.core.adapter.InstantAdapter
 
-fun initObjectMapper() = initObjectMapper(ObjectMapper())
+fun initJsonMapper() = initJsonMapper(JsonMapper.builder())
 
-fun initObjectMapper(builder: ObjectMapper): ObjectMapper = builder.init()
+fun initJsonMapper(builder: JsonMapper.Builder): ObjectMapper = builder.init()
 
-fun ObjectMapper.init(): ObjectMapper {
+fun JsonMapper.Builder.init(): ObjectMapper {
     configure(SerializationFeature.INDENT_OUTPUT, true)
     configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
     configure(SerializationFeature.FAIL_ON_SELF_REFERENCES, false)
@@ -37,10 +44,23 @@ fun ObjectMapper.init(): ObjectMapper {
     configure(JsonGenerator.Feature.IGNORE_UNKNOWN, true)
     configure(JsonGenerator.Feature.WRITE_HEX_UPPER_CASE, true)
 
-    registerModule(BaseDTOAdapter)
-    findAndRegisterModules()
+    configure(MapperFeature.AUTO_DETECT_FIELDS, true)
+    configure(MapperFeature.AUTO_DETECT_GETTERS, true)
+    configure(MapperFeature.AUTO_DETECT_IS_GETTERS, true)
+    configure(MapperFeature.AUTO_DETECT_SETTERS, true)
+    configure(MapperFeature.AUTO_DETECT_CREATORS, true)
+    configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS, true)
 
-    return this
+    configure(StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION, true)
+
+    val mapper = build()
+    mapper.registerModule(BaseDTOAdapter)
+    mapper.registerModule(InstantAdapter)
+    mapper.findAndRegisterModules()
+
+    return mapper
 }
 
-val DEFAULT_OBJECT_MAPPER = initObjectMapper()
+val DEFAULT_OBJECT_MAPPER = initJsonMapper()
+
+inline fun <reified T> typeReference(): TypeReference<T> = object : TypeReference<T>() {}
