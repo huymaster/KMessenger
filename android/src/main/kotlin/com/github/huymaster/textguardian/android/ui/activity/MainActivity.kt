@@ -6,17 +6,16 @@ import android.os.PersistableBundle
 import androidx.compose.animation.*
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.scrollable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.github.huymaster.textguardian.android.ui.component.QuickThemeButton
 import com.github.huymaster.textguardian.android.ui.screen.InitScreen
 import com.github.huymaster.textguardian.android.ui.screen.LoginScreen
 import com.github.huymaster.textguardian.android.ui.screen.RegisterScreen
@@ -74,22 +73,31 @@ class MainActivity : BaseActivity() {
                     Tab(selected = screen == index, onClick = { screen = index }, text = { Text(tab.tabName) })
                 }
             }
-            SharedTransitionLayout {
-                AnimatedContent(screen, transitionSpec = { fadeIn() togetherWith fadeOut() }) {
-                    when (it) {
-                        AuthenticationScreen.LOGIN.ordinal -> LoginScreen(
-                            loginModel,
-                            this@SharedTransitionLayout,
-                            this,
-                            { screen = AuthenticationScreen.REGISTER.ordinal }
-                        ) { moveToChatActivity() }
+            Box(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                QuickThemeButton(
+                    Modifier
+                        .align(Alignment.TopStart)
+                        .padding(8.dp)
+                )
+                SharedTransitionLayout {
+                    AnimatedContent(screen, transitionSpec = { fadeIn() togetherWith fadeOut() }) {
+                        when (it) {
+                            AuthenticationScreen.LOGIN.ordinal -> LoginScreen(
+                                loginModel,
+                                this@SharedTransitionLayout,
+                                this,
+                                { screen = AuthenticationScreen.REGISTER.ordinal }
+                            ) { moveToChatActivity() }
 
-                        AuthenticationScreen.REGISTER.ordinal -> RegisterScreen(
-                            registerModel,
-                            this@SharedTransitionLayout,
-                            this,
-                            onSwitchToLogin = { screen = AuthenticationScreen.LOGIN.ordinal }
-                        )
+                            AuthenticationScreen.REGISTER.ordinal -> RegisterScreen(
+                                registerModel,
+                                this@SharedTransitionLayout,
+                                this,
+                                onSwitchToLogin = { screen = AuthenticationScreen.LOGIN.ordinal }
+                            )
+                        }
                     }
                 }
             }

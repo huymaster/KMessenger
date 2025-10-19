@@ -23,13 +23,15 @@ object Module {
                 _databaseHolder.set(_database)
             _databaseHolder.get()
         }
-        single { UserRepository() }
-        single { CredentialRepository() }
-        single { UserTokenRepository() }
         single { AttachmentRepository() }
-        single { MessageRepository() }
         single { ConversationRepository() }
+        single { CredentialRepository() }
+        single { MessageAttachmentRepository() }
+        single { MessageRepository() }
         single { ParticipantRepository() }
+        single { PublicKeyRepository() }
+        single { UserRepository() }
+        single { UserTokenRepository() }
     }
     val utils = module {
         single { AttachmentCompressor() }

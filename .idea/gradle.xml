@@ -11,7 +11,7 @@
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/android" />
             <option value="$PROJECT_DIR$/core" />
-            <option value="$PROJECT_DIR$/jvm" />
+            <option value="$PROJECT_DIR$/kmp" />
             <option value="$PROJECT_DIR$/server" />
           </set>
         </option>

@@ -3,6 +3,9 @@
   <component name="CompilerConfiguration">
     <bytecodeTargetLevel target="11">
       <module name="KMessenger.jvm.dev" target="17" />
+      <module name="KMessenger.jvm.jvmDev" target="17" />
+      <module name="KMessenger.jvm.jvmMain" target="17" />
+      <module name="KMessenger.jvm.jvmTest" target="17" />
       <module name="KMessenger.jvm.main" target="17" />
       <module name="KMessenger.jvm.test" target="17" />
     </bytecodeTargetLevel>

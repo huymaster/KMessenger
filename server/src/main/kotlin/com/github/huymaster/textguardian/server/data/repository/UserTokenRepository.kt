@@ -35,7 +35,7 @@ class UserTokenRepository() : BaseRepository<UserTokenEntity, UserTokenTable>(Us
             .withAudience(AUDIENCE)
             .withIssuer(ISSUER)
             .withClaim(UserDTO.ID_FIELD, userId.toString())
-            .withExpiresAt(Instant.now().plus(10, ChronoUnit.MINUTES))
+            .withExpiresAt(Instant.now().plus(30, ChronoUnit.MINUTES))
             .sign(Algorithm.HMAC512(JWT_SECRET))
         return token
     }

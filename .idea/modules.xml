@@ -3,7 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/android/KMessenger.android.main.iml" filepath="$PROJECT_DIR$/.idea/modules/android/KMessenger.android.main.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/jvm/KMessenger.jvm.jvmMain.iml" filepath="$PROJECT_DIR$/.idea/modules/jvm/KMessenger.jvm.jvmMain.iml" />
     </modules>
   </component>
 </project>

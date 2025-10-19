@@ -1,5 +1,7 @@
 package com.github.huymaster.textguardian.android.ui.component
 
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BrightnessAuto
 import androidx.compose.material.icons.filled.DarkMode
@@ -16,20 +18,21 @@ fun QuickThemeButton(
 ) {
     var theme by remember { AppSettingsManager.Settings.THEME }
     var mode by remember { mutableIntStateOf(AppSettingsManager.Settings.THEME.VALUES.indexOf(theme)) }
-    val icon = when (theme) {
-        AppSettingsManager.Settings.THEME.DARK -> Icons.Default.DarkMode
-        AppSettingsManager.Settings.THEME.LIGHT -> Icons.Default.LightMode
-        else -> Icons.Default.BrightnessAuto
-    }
-
     LaunchedEffect(mode) {
         theme = AppSettingsManager.Settings.THEME.VALUES[mode]
     }
 
-    IconButton(
-        modifier = modifier,
-        onClick = { mode = (mode + 1) % AppSettingsManager.Settings.THEME.VALUES.size }
-    ) {
-        Icon(icon, contentDescription = "Theme")
+    Crossfade(theme, animationSpec = tween(500)) {
+        val icon = when (it) {
+            AppSettingsManager.Settings.THEME.DARK -> Icons.Default.DarkMode
+            AppSettingsManager.Settings.THEME.LIGHT -> Icons.Default.LightMode
+            else -> Icons.Default.BrightnessAuto
+        }
+        IconButton(
+            modifier = modifier,
+            onClick = { mode = (mode + 1) % AppSettingsManager.Settings.THEME.VALUES.size }
+        ) {
+            Icon(icon, contentDescription = "Theme")
+        }
     }
 }

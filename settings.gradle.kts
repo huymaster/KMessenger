@@ -34,4 +34,4 @@ rootProject.name = "KMessenger"
 include("server")
 include("android")
 include("core")
-include("jvm")
+include("kmp")

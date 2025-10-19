@@ -1,9 +1,6 @@
 package com.github.huymaster.textguardian.core.api
 
-import com.github.huymaster.textguardian.core.api.type.AccessToken
-import com.github.huymaster.textguardian.core.api.type.LoginRequest
-import com.github.huymaster.textguardian.core.api.type.RefreshToken
-import com.github.huymaster.textguardian.core.api.type.RegisterRequest
+import com.github.huymaster.textguardian.core.api.type.*
 import com.github.huymaster.textguardian.core.dto.ConversationDTO
 import retrofit2.Response
 import retrofit2.http.*
@@ -38,9 +35,9 @@ interface APIVersion1Service {
         @Query("conversationId") conversationId: String
     ): Response<ConversationDTO>
 
-    @GET("$PREFIX/conversation/name")
-    suspend fun getConversationName(
+    @GET("$PREFIX/conversation/publicKeys")
+    suspend fun getParticipantPublicKeys(
         @Header("Authorization") token: String,
         @Query("conversationId") conversationId: String
-    ): Response<String>
+    ): Response<List<UserPublicKey>>
 }

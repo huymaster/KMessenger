@@ -2,6 +2,7 @@ package com.github.huymaster.textguardian.server.api
 
 import com.github.huymaster.textguardian.server.api.v1.AuthenticationController
 import com.github.huymaster.textguardian.server.api.v1.ConversationController
+import com.github.huymaster.textguardian.server.api.v1.SecurityController
 import com.github.huymaster.textguardian.server.data.repository.*
 import com.github.huymaster.textguardian.server.net.AUTH_NAME
 import io.ktor.http.*
@@ -17,6 +18,7 @@ object APIVersion1 : BaseAPI(1) {
     private val userTokenRepository: UserTokenRepository by inject()
     private val conversationRepository: ConversationRepository by inject()
     private val participantRepository: ParticipantRepository by inject()
+    private val publicKeyRepository: PublicKeyRepository by inject()
 
     override fun Route.register() {
         registerAuthenticationController()
@@ -63,8 +65,13 @@ object APIVersion1 : BaseAPI(1) {
             get("/conversation") {
                 ConversationController.getConversationById(call, conversationRepository)
             }
-            get("/conversation/name") {
-                ConversationController.getConversationName(call, conversationRepository)
+            get("/conversation/publicKeys") {
+                SecurityController.getParticipantPublicKeys(
+                    call,
+                    conversationRepository,
+                    participantRepository,
+                    publicKeyRepository
+                )
             }
         }
     }

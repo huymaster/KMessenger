@@ -52,26 +52,6 @@ object ConversationController {
         call.respond(conversationDTO)
     }
 
-    suspend fun getConversationName(
-        call: RoutingCall,
-        conversationRepository: ConversationRepository
-    ) {
-        val conversationId = runCatching { UUID.fromString(call.parameters[ConversationDTO.ID_FIELD]) }
-        if (conversationId.isFailure || conversationId.getOrNull() == null) {
-            sendErrorResponse(
-                call, "Require ${ConversationDTO.ID_FIELD} parameter", conversationId.exceptionOrNull(),
-                HttpStatusCode.BadRequest
-            )
-            return
-        }
-        val conversation = conversationRepository.findConversationByConversationId(conversationId.getOrNull()!!)
-        if (conversation == null) {
-            sendErrorResponse(call, "Conversation not found", status = HttpStatusCode.NotFound)
-            return
-        }
-        call.respond(conversation.name)
-    }
-
     suspend fun getLatestMessage(
         call: RoutingCall,
         conversationRepository: ConversationRepository,

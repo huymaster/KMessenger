@@ -31,7 +31,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.github.huymaster.textguardian.android.ui.component.QuickThemeButton
 import com.github.huymaster.textguardian.android.viewmodel.RegisterState
 import com.github.huymaster.textguardian.android.viewmodel.RegisterViewModel
 import kotlinx.coroutines.launch
@@ -53,7 +52,6 @@ fun RegisterScreen(
                 .padding(16.dp, 32.dp, 16.dp, 16.dp),
             contentAlignment = Alignment.Center
         ) {
-            QuickThemeButton(Modifier.align(Alignment.BottomEnd))
             Box(
                 modifier = Modifier
                     .sharedBounds(

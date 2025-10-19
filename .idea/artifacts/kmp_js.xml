@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="kmp-js">
+    <output-path>$PROJECT_DIR$/kmp/build/libs</output-path>
+    <root id="archive" name="kmp-js.jar">
+      <element id="module-output" name="KMessenger.kmp.jsMain" />
+    </root>
+  </artifact>
+</component>
