@@ -1,8 +1,9 @@
 package com.github.huymaster.textguardian.core.api
 
-import com.github.huymaster.textguardian.core.api.type.*
-import com.github.huymaster.textguardian.core.dto.ConversationDTO
-import retrofit2.Response
+import com.github.huymaster.textguardian.core.api.type.AccessToken
+import com.github.huymaster.textguardian.core.api.type.LoginRequest
+import com.github.huymaster.textguardian.core.api.type.RefreshToken
+import com.github.huymaster.textguardian.core.api.type.RegisterRequest
 import retrofit2.http.*
 
 interface APIVersion1Service {
@@ -11,33 +12,15 @@ interface APIVersion1Service {
         private const val PREFIX = "/api/v1"
     }
 
-    @POST("$PREFIX/register")
-    suspend fun register(@Body body: RegisterRequest): Response<String>
+    @POST("$PREFIX/auth/register")
+    suspend fun register(@Body body: RegisterRequest): String
 
-    @POST("$PREFIX/login")
-    suspend fun login(@Body body: LoginRequest): Response<RefreshToken>
+    @POST("$PREFIX/auth/login")
+    suspend fun login(@Body body: LoginRequest): RefreshToken
 
-    @POST("$PREFIX/refresh")
-    suspend fun refreshToken(@Body body: RefreshToken): Response<AccessToken>
+    @GET("$PREFIX/auth/refresh")
+    suspend fun refresh(@Header("Authorization") token: String, @Body body: RefreshToken): AccessToken
 
-    @POST("$PREFIX/checkSession")
-    suspend fun checkSession(@Body body: RefreshToken): Response<String>
-
-    @DELETE("$PREFIX/revoke")
-    suspend fun revokeToken(@Header("Authorization") token: String, @Body body: RefreshToken): Response<String>
-
-    @GET("$PREFIX/conversations")
-    suspend fun getConversationList(@Header("Authorization") token: String): Response<List<ConversationDTO>>
-
-    @GET("$PREFIX/conversation")
-    suspend fun getConversation(
-        @Header("Authorization") token: String,
-        @Query("conversationId") conversationId: String
-    ): Response<ConversationDTO>
-
-    @GET("$PREFIX/conversation/publicKeys")
-    suspend fun getParticipantPublicKeys(
-        @Header("Authorization") token: String,
-        @Query("conversationId") conversationId: String
-    ): Response<List<UserPublicKey>>
+    @DELETE("$PREFIX/auth/logout")
+    suspend fun logout(@Header("Authorization") token: String, @Body body: RefreshToken): String
 }

@@ -1,6 +1,11 @@
 package com.github.huymaster.textguardian.server.api
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.github.huymaster.textguardian.server.net.AUTH_NAME
+import io.ktor.http.*
+import io.ktor.server.auth.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -31,4 +36,38 @@ abstract class BaseAPI protected constructor(val version: Int) : KoinComponent {
     }
 
     protected abstract fun Route.register()
+
+    protected fun Route.protect(route: Route.() -> Unit) {
+        authenticate(AUTH_NAME) { route() }
+    }
+
+    suspend inline fun <reified T : Any> RoutingCall.receive(
+        onSuccess: suspend RoutingCall.(T) -> Unit
+    ) {
+        runCatching { this.receive<T>() }
+            .onSuccess { onSuccess(it) }
+            .onFailure { sendErrorResponse(this, "Invalid request", it) }
+    }
+
+    suspend inline fun <reified T : Any> RoutingCall.receive(
+        onSuccess: suspend RoutingCall.(T) -> Unit,
+        onFailure: suspend RoutingCall.(Throwable) -> Unit
+    ) {
+        runCatching { this.receive<T>() }
+            .onSuccess { onSuccess(it) }
+            .onFailure { onFailure(it) }
+    }
+
+    suspend fun sendErrorResponse(
+        call: RoutingCall,
+        message: String,
+        exception: Throwable? = null,
+        status: HttpStatusCode = HttpStatusCode.BadRequest
+    ) {
+        val exceptionMessage = exception?.message
+        if (exceptionMessage != null)
+            call.respondText("$message: $exceptionMessage", status = status)
+        else
+            call.respondText(message, status = status)
+    }
 }

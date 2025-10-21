@@ -10,6 +10,7 @@ fun main() {
 }
 
 fun Application.module() {
+    configureRateLimit()
     configureDependencyInject()
     configureSerialization()
     configureAuthentication()

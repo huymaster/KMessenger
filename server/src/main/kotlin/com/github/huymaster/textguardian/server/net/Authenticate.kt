@@ -11,24 +11,21 @@ import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.response.*
 import org.koin.ktor.ext.inject
+import org.ktorm.dsl.eq
 import java.time.Instant
 import java.util.*
 
 const val AUTH_NAME = "jwt"
 const val REALM = "KMessenger"
-const val ISSUER = "KMessenger"
-const val AUDIENCE = "KMessenger"
 val JWT_SECRET: String = System.getenv("JWT_SECRET") ?: "KMessenger_JWT_SECRET"
 
 fun Application.configureAuthentication() {
-    val userRepository by inject<UserRepository>()
+    val repository by inject<UserRepository>()
     install(Authentication) {
         jwt(AUTH_NAME) {
             realm = REALM
             verifier(
                 JWT.require(Algorithm.HMAC512(JWT_SECRET))
-                    .withAudience(AUDIENCE)
-                    .withIssuer(ISSUER)
                     .build()
             )
             challenge { defaultScheme, realm ->
@@ -45,9 +42,18 @@ fun Application.configureAuthentication() {
                     respondText("Unable to retrive user", status = HttpStatusCode.Unauthorized)
                     return@validate null
                 } else {
-                    val user = runCatching { userRepository.findUserById(UUID.fromString(claim.asString())) }
-                    if (user.getOrNull() != null)
-                        return@validate JWTPrincipal(it.payload)
+                    val uuid = runCatching { UUID.fromString(claim.asString()) }.getOrNull()
+                    if (uuid == null) {
+                        respondText("Invalid user id", status = HttpStatusCode.Unauthorized)
+                        return@validate null
+                    }
+                    val exists = repository.exists { e -> e.userId eq uuid }
+                    if (exists)
+                        return@validate uuid
+                    else {
+                        respondText("User not found", status = HttpStatusCode.Unauthorized)
+                        return@validate null
+                    }
                 }
             }
         }

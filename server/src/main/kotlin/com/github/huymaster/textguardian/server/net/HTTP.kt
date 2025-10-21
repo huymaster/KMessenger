@@ -4,6 +4,7 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.compression.*
 import io.ktor.server.plugins.conditionalheaders.*
+import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.defaultheaders.*
 import io.ktor.server.plugins.hsts.*
 import io.ktor.server.plugins.partialcontent.*
@@ -25,6 +26,10 @@ fun Application.configureHTTP() {
         maxFrameSize = 1024 * 1024 * 1024
     }
     install(IgnoreTrailingSlash)
+    install(CORS) {
+        anyHost()
+        allowHeader(HttpHeaders.ContentType)
+    }
     install(DefaultHeaders) {
         header(HttpHeaders.Server, "Ktor v3.3.0")
     }

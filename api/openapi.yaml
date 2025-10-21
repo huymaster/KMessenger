@@ -1,0 +1,31 @@
+openapi: 3.0.0
+info:
+  title: KMessenger
+  description: ''
+  version: 1.0.0
+servers:
+  - url: https://api-textguardian.ddns.net/api/v1
+tags:
+  - name: auth
+paths:
+  /auth/register:
+    summary: register
+    post:
+      summary: register
+      description: ''
+      operationId: ''
+      responses:
+        default:
+          description: Default error sample response
+      tags:
+        - auth
+  /auth/login:
+    post:
+      summary: login
+      description: ''
+      operationId: ''
+      responses:
+        '200':
+          description: Default response
+      tags:
+        - auth
