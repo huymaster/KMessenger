@@ -1,12 +1,17 @@
 package com.github.huymaster.textguardian.server.api
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.github.huymaster.textguardian.server.data.repository.RepositoryResult
 import com.github.huymaster.textguardian.server.net.AUTH_NAME
 import io.ktor.http.*
 import io.ktor.server.auth.*
+import io.ktor.server.html.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.util.reflect.*
+import kotlinx.html.*
+import okhttp3.internal.toImmutableMap
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.ktorm.database.Database
@@ -16,7 +21,9 @@ import org.slf4j.LoggerFactory
 abstract class BaseAPI protected constructor(val version: Int) : KoinComponent {
     companion object {
         private val rootLogger: Logger = LoggerFactory.getLogger(BaseAPI::class.java)
+        private val _API_MAP = mutableMapOf<Int, String>()
         const val DEFAULT_PREFIX = "api"
+        val API_LIST get() = _API_MAP.toImmutableMap()
     }
 
     protected val database: Database by inject()
@@ -26,27 +33,44 @@ abstract class BaseAPI protected constructor(val version: Int) : KoinComponent {
     init {
         require(version >= 0) { "Version must be non-negative but $version" }
         database.useConnection { it.close() }
+        if (!_API_MAP.contains(version))
+            _API_MAP[version] = getApiPath()
     }
 
     fun getApiPath(): String = "$DEFAULT_PREFIX/v$version"
+    open suspend fun RoutingContext.swaggerProvider() {
+        call.respondHtml {
+            head { title { +"Not supported" } }
+            body {
+                h1 { +"Not supported" }
+                p { +"API version $version documentation not available" }
+                a(href = "/") { +"Back to home" }
+            }
+        }
+    }
 
     fun register(routing: Routing) {
         rootLogger.info("Registering API v$version")
+        routing.get(getApiPath()) { swaggerProvider() }
+        routing.get("${getApiPath()}/health") { call.respond(null, typeInfo<String>()) }
         routing.route(path = getApiPath(), build = { register() })
     }
 
     protected abstract fun Route.register()
 
     protected fun Route.protect(route: Route.() -> Unit) {
-        authenticate(AUTH_NAME) { route() }
+        authenticate(AUTH_NAME, build = route)
     }
+
+    suspend inline fun <reified T : Any> RoutingCall.receiveNullableNoThrow(): T? =
+        runCatching { this.receive<T>() }.getOrNull()
 
     suspend inline fun <reified T : Any> RoutingCall.receive(
         onSuccess: suspend RoutingCall.(T) -> Unit
     ) {
         runCatching { this.receive<T>() }
             .onSuccess { onSuccess(it) }
-            .onFailure { sendErrorResponse(this, "Invalid request", it) }
+            .onFailure { sendErrorResponse("Invalid request", it) }
     }
 
     suspend inline fun <reified T : Any> RoutingCall.receive(
@@ -58,16 +82,19 @@ abstract class BaseAPI protected constructor(val version: Int) : KoinComponent {
             .onFailure { onFailure(it) }
     }
 
-    suspend fun sendErrorResponse(
-        call: RoutingCall,
+    suspend fun RoutingCall.sendErrorResponse(
         message: String,
         exception: Throwable? = null,
         status: HttpStatusCode = HttpStatusCode.BadRequest
     ) {
         val exceptionMessage = exception?.message
         if (exceptionMessage != null)
-            call.respondText("$message: $exceptionMessage", status = status)
+            respondText("$message: $exceptionMessage", status = status)
         else
-            call.respondText(message, status = status)
+            respondText(message, status = status)
     }
+
+    suspend fun RoutingCall.sendErrorResponse(
+        error: RepositoryResult
+    ) = sendErrorResponse(message = error.message, status = error.desiredStatus)
 }

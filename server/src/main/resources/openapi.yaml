@@ -1,0 +1,201 @@
+openapi: 3.0.0
+info:
+  title: KMessenger
+  description: ''
+  version: 1.0.0
+servers:
+  - url: https://api-textguardian.ddns.net/api/v1
+tags:
+  - name: basic
+  - name: auth
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    RegisterRequest:
+      type: object
+      properties:
+        phoneNumber:
+          type: string
+          minLength: 10
+          maxLength: 10
+        password:
+          type: string
+          minLength: 6
+          maxLength: 32
+      required:
+        - phoneNumber
+        - password
+    LoginRequest:
+      type: object
+      properties:
+        phoneNumber:
+          type: string
+          minLength: 10
+          maxLength: 10
+        password:
+          type: string
+          minLength: 6
+          maxLength: 32
+          format: password
+        deviceInfo:
+          type: string
+      required:
+        - phoneNumber
+        - password
+    RefreshToken:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+      required:
+        - refreshToken
+    AccessToken:
+      type: object
+      properties:
+        accessToken:
+          type: string
+      required:
+        - accessToken
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        200:
+          description: Server is running
+        502:
+          description: Server not available
+      tags:
+        - basic
+  /auth/register:
+    post:
+      summary: Register a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+            example:
+              phoneNumber: "0123456789"
+              password: "password"
+      responses:
+        200:
+          description: Register success
+        400:
+          description: Missing required fields [phoneNumber, password]. Or invalid format of phoneNumber or password.
+        409:
+          description: Phone number already exists
+        429:
+          description: Too many requests
+        500:
+          description: Failed to create user [Server error]
+        502:
+          description: Server not available
+      tags:
+        - auth
+  /auth/login:
+    post:
+      summary: Login and get a refresh token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+            examples:
+              Example without deviceInfo:
+                value:
+                  phoneNumber: "0123456789"
+                  password: "password"
+              Example with deviceInfo:
+                value:
+                  phoneNumber: "0123456789"
+                  password: "password"
+                  deviceInfo: "deviceInfo"
+      responses:
+        200:
+          description: Login success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RefreshToken"
+        400:
+          description: Missing required fields [phoneNumber, password]. Or invalid format of phoneNumber or password.
+        401:
+          description: Wrong password
+        404:
+          description: User not found
+        429:
+          description: Too many requests
+        500:
+          description: Failed to login and create refresh token [Server error]
+        502:
+          description: Server not available
+      tags:
+        - auth
+  /auth/refresh:
+    get:
+      summary: Get access token from refresh token
+      parameters:
+        - name: refreshToken
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Refresh token success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccessToken"
+        400:
+          description: Missing required fields [refreshToken]. Or invalid format of refreshToken.
+        403:
+          description: Refresh token expired or revoked
+        404:
+          description: Refresh token not found
+        429:
+          description: Too many requests
+        500:
+          description: Failed to refresh token [Server error]
+        502:
+          description: Server not available
+      tags:
+        - auth
+  /auth/logout:
+    delete:
+      summary: Revoke refresh token
+      parameters:
+        - name: refreshToken
+          in: query
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: [ ]
+      responses:
+        200:
+          description: Logout success
+        400:
+          description: Missing required fields [refreshToken]. Or invalid format of refreshToken.
+        401:
+          description: Unauthorized
+        403:
+          description: Refresh token expired or revoked
+        404:
+          description: Refresh token not found
+        429:
+          description: Too many requests
+        500:
+          description: Failed to logout [Server error]
+        502:
+          description: Server not available
+      tags:
+        - auth

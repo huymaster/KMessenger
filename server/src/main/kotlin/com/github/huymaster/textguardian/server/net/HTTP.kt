@@ -28,6 +28,7 @@ fun Application.configureHTTP() {
     install(IgnoreTrailingSlash)
     install(CORS) {
         anyHost()
+        anyMethod()
         allowHeader(HttpHeaders.ContentType)
     }
     install(DefaultHeaders) {

@@ -8,5 +8,4 @@ interface CredentialEntity : BaseEntity<CredentialEntity> {
 
     var userId: UUID
     var password: ByteArray
-    var key: ByteArray
 }

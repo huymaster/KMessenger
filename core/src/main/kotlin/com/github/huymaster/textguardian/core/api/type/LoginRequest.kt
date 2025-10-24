@@ -4,5 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty
 
 data class LoginRequest(
     @field:JsonProperty("phoneNumber") val phoneNumber: String,
-    @field:JsonProperty("password") val password: String
+    @field:JsonProperty("password") val password: String,
+    @field:JsonProperty("deviceInfo") val deviceInfo: String? = null
 )

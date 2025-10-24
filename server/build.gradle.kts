@@ -1,6 +1,19 @@
+import net.schmizz.sshj.SSHClient
+import net.schmizz.sshj.transport.verification.PromiscuousVerifier
+import net.schmizz.sshj.xfer.FileSystemFile
+
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.ktor)
+}
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("com.hierynomus:sshj:0.40.0")
+    }
 }
 
 group = "com.github.huymaster"
@@ -9,6 +22,12 @@ val mainClassName = "com.github.huymaster.textguardian.server.ApplicationKt"
 
 application {
     mainClass = mainClassName
+}
+
+sourceSets {
+    main {
+        java.srcDirs("src/main/kotlin")
+    }
 }
 
 dependencies {
@@ -25,11 +44,12 @@ dependencies {
     implementation(libs.ktor.server.default.headers)
     implementation(libs.ktor.server.conditional.headers)
     implementation(libs.ktor.server.compression)
-    implementation(libs.ktor.server.ssl)
     implementation(libs.ktor.server.swagger)
     implementation(libs.ktor.server.cors)
     implementation(libs.ktor.server.netty)
+    implementation(libs.ktor.server.forwarded.header)
     implementation(libs.ktor.server.websockets)
+    implementation(libs.ktor.server.html.builder)
     implementation(libs.logback.classic)
     implementation(libs.firebase.admin)
     implementation(platform(libs.koin.bom))
@@ -52,9 +72,7 @@ dependencies {
     implementation(libs.mongo.kotlin.coroutine)
     implementation(libs.mongo.kotlin.extenstions)
     implementation(libs.mongo.bson.kotlinx)
-    implementation(project(":core")) {
-        isTransitive = false
-    }
+    implementation(project(":core")) { isTransitive = false }
     testImplementation(libs.ktor.server.test.host)
     testImplementation(libs.koin.test)
     testImplementation(libs.koin.test.junit5)
@@ -74,14 +92,6 @@ tasks.jar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-tasks.register<Exec>("runServer") {
-    println("Running server at ${file(".").parentFile}")
-    dependsOn(tasks.jar)
-    val jarPath = tasks.jar.get().outputs.files.singleFile
-    commandLine("authbind", "--deep", "java", "-jar", "$jarPath")
-    workingDir = file(".").parentFile
-}
-
 repositories {
     mavenCentral()
 }
@@ -92,4 +102,64 @@ kotlin {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+tasks.register("deploy") {
+    group = "build"
+    dependsOn(tasks.jar)
+    val file = tasks.jar.get().outputs.files.singleFile
+
+    doLast {
+        fun SSHClient.exec(cmd: String) {
+            val session = startSession()
+            session.exec(cmd).join()
+            session.close()
+        }
+
+        val client = SSHClient()
+        client.useCompression()
+        client.addHostKeyVerifier(PromiscuousVerifier())
+        client.connect("api-textguardian.ddns.net")
+        val key = client.loadKeys("${System.getProperty("user.home")}/.ssh/id_rsa_cloud")
+        client.authPublickey("root", key)
+        val tempFile = File.createTempFile("service", "tmp").apply {
+            deleteOnExit()
+        }
+        tempFile.writeText(
+            """
+            [Unit]
+            Description=KMessenger Service
+            After=network.target
+
+            [Service]
+            Type=exec
+            RemainAfterExit=false
+            ExecStart=sudo -i -u root /usr/bin/java -jar /root/server.jar
+            ExecStop=/bin/kill -SIGINT $(MAINPID)
+            Restart=on-failure
+            RestartSec=10
+
+            [Install]
+            WantedBy=multi-user.target
+            """.trimIndent()
+        )
+
+        println("Stopping service")
+        client.exec("mkdir -p /root")
+        client.exec("systemctl stop kmessenger.service")
+        client.exec("rm -f /root/server.jar")
+        client.exec("rm -f /usr/lib/systemd/system/kmessenger.service")
+
+        val transfer = client.newSCPFileTransfer()
+        println("Uploading kmessenger.service...")
+        transfer.upload(FileSystemFile(tempFile), "/usr/lib/systemd/system/kmessenger.service")
+        println("Uploading server.jar...")
+        transfer.upload(FileSystemFile(file), "/root/server.jar")
+
+        println("Enabling service")
+        client.exec("systemctl daemon-reload")
+        client.exec("systemctl enable kmessenger.service")
+        client.exec("systemctl start kmessenger.service")
+        client.close()
+    }
 }

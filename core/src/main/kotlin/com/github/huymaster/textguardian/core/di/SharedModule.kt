@@ -1,7 +1,6 @@
 package com.github.huymaster.textguardian.core.di
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.github.huymaster.textguardian.core.api.APIBase
 import com.github.huymaster.textguardian.core.api.APIVersion1Service
 import com.github.huymaster.textguardian.core.utils.DEFAULT_OBJECT_MAPPER
 import com.github.huymaster.textguardian.core.utils.KEY_PAIR_ALGORITHM
@@ -27,7 +26,6 @@ object SharedModule {
         factory<KeyPair> { get<KeyPairGenerator>().generateKeyPair() }
     }
     val api = module {
-        factory { createService(APIBase::class) }
         factory { createService(APIVersion1Service::class) }
     }
 }

@@ -1,6 +1,6 @@
 package com.github.huymaster.textguardian.android.data.repository
 
-import com.github.huymaster.textguardian.core.api.APIBase
+import com.github.huymaster.textguardian.core.api.APIVersion1Service
 import kotlinx.coroutines.CancellationException
 
 sealed class ServiceHealth {
@@ -9,7 +9,7 @@ sealed class ServiceHealth {
 }
 
 class GenericRepository(
-    private val service: APIBase
+    private val service: APIVersion1Service
 ) {
     suspend fun checkServiceHealth(): ServiceHealth {
         return try {

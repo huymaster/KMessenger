@@ -4,17 +4,18 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
 import com.github.huymaster.textguardian.core.api.APIVersion1Service
-import com.github.huymaster.textguardian.core.api.type.RefreshToken
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.get
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
-class JWTTokenManager(context: Context) {
+class JWTTokenManager(context: Context) : KoinComponent {
     private val preference: SharedPreferences = context.getSharedPreferences("token_storage", Context.MODE_PRIVATE)
     private val mutex = Mutex()
     private val refreshToken = "token"
-    private val expireTime = 10L
+    private val expireTime = 30L
     private val expireUnit = ChronoUnit.MINUTES
     private var lastTokenFetch: Instant = Instant.EPOCH
     private var lastToken: String? = null
@@ -25,18 +26,11 @@ class JWTTokenManager(context: Context) {
         preference.edit { putString(refreshToken, token) }
     }
 
-    suspend fun verify(service: APIVersion1Service): Boolean {
-        val refreshToken = getRefreshToken() ?: return false
-        val tokenValid = service.checkSession(RefreshToken(refreshToken)).isSuccessful
-        if (!tokenValid) removeRefreshToken()
-        return tokenValid
-    }
-
     fun removeRefreshToken() {
         preference.edit { remove(refreshToken) }
     }
 
-    suspend fun getAccessToken(service: APIVersion1Service): String {
+    suspend fun getAccessToken(service: APIVersion1Service = get()): String {
         mutex.withLock {
             val expire = lastTokenFetch.plus(expireTime, expireUnit)
             if (lastToken == null || Instant.now().isAfter(expire))
@@ -45,14 +39,18 @@ class JWTTokenManager(context: Context) {
         }
     }
 
-    suspend fun requireNewAccessToken(service: APIVersion1Service): String {
-        val accessToken = service.refreshToken(RefreshToken(getRefreshToken()!!))
-        if (accessToken.isSuccessful) {
+    suspend fun requireNewAccessToken(service: APIVersion1Service = get()): String {
+        val refreshToken = getRefreshToken() ?: throw IllegalStateException("Refresh token not found")
+        val response = service.refresh(refreshToken)
+        if (response.isSuccessful) {
+            val body = response.body() ?: throw IllegalStateException("Failed to get token. Error ${response.code()}")
             lastTokenFetch = Instant.now()
-            return accessToken.body()!!.accessToken.also { lastToken = it }
+            lastToken = body.accessToken
+            return body.accessToken
         } else {
-            removeRefreshToken()
-            throw IllegalStateException("Failed to get token. Error ${accessToken.code()}")
+            if (response.code() == 401)
+                removeRefreshToken()
+            throw IllegalStateException("Failed to get token. Error ${response.code()}")
         }
     }
 }

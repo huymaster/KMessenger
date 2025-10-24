@@ -9,21 +9,14 @@ import kotlin.reflect.KClass
 
 const val API_BASE_URL = "https://api-textguardian.ddns.net"
 private val client = OkHttpClient.Builder()
-    .addInterceptor { chain ->
-        val request = chain.request()
-            .newBuilder()
-            .header("User-Agent", "KMessenger")
-            .build()
-        return@addInterceptor chain.proceed(request)
-    }
     .connectTimeout(10, TimeUnit.SECONDS)
     .build()
 
-fun <T : Any> createService(clazz: KClass<T>): T = createService(clazz.java)
+fun <T : Any> createService(clazz: KClass<T>, baseUrl: String = API_BASE_URL): T = createService(clazz.java, baseUrl)
 
-fun <T : Any> createService(clazz: Class<T>): T {
+fun <T : Any> createService(clazz: Class<T>, baseUrl: String = API_BASE_URL): T {
     val retrofit = Retrofit.Builder()
-        .baseUrl(API_BASE_URL)
+        .baseUrl(baseUrl)
         .addConverterFactory(ScalarsConverterFactory.create())
         .addConverterFactory(JacksonConverterFactory.create(initJsonMapper()))
         .client(client)

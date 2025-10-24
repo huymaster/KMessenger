@@ -9,6 +9,4 @@ object CredentialTable : BaseTable<CredentialEntity>("credential") {
         .bindTo { it.userId }
     val password = bytes("password")
         .bindTo { it.password }
-    val key = bytes("key")
-        .bindTo { it.key }
 }

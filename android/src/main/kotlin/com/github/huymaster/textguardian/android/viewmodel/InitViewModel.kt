@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import com.github.huymaster.textguardian.android.app.JWTTokenManager
 import com.github.huymaster.textguardian.android.data.repository.GenericRepository
 import com.github.huymaster.textguardian.android.data.repository.ServiceHealth
-import com.github.huymaster.textguardian.core.api.APIVersion1Service
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -39,6 +38,6 @@ class InitViewModel(
     }
 
     suspend fun validateSession(): Boolean {
-        return tokenManager.verify(get(APIVersion1Service::class.java))
+        return runCatching { tokenManager.getAccessToken() }.isSuccess
     }
 }
