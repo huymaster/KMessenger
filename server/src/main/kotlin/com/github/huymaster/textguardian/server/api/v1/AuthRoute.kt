@@ -14,16 +14,16 @@ import com.github.huymaster.textguardian.server.data.repository.RepositoryResult
 import com.github.huymaster.textguardian.server.data.repository.UserRepository
 import com.github.huymaster.textguardian.server.data.repository.UserTokenRepository
 import io.ktor.http.*
+import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.response.*
-import io.ktor.server.routing.*
 import org.koin.core.component.inject
 import org.ktorm.database.Database
 import java.util.*
 
 object AuthRoute : SubRoute() {
-    suspend fun register(call: RoutingCall) {
+    suspend fun register(call: ApplicationCall) {
         val database: Database by inject()
         val user: UserRepository by inject()
         val credential: CredentialRepository by inject()
@@ -54,7 +54,7 @@ object AuthRoute : SubRoute() {
         }
     }
 
-    suspend fun login(call: RoutingCall) {
+    suspend fun login(call: ApplicationCall) {
         val user: UserRepository by inject()
         val credential: CredentialRepository by inject()
         val token: UserTokenRepository by inject()
@@ -84,7 +84,7 @@ object AuthRoute : SubRoute() {
         call.respond(genTokenResult.data as RefreshToken)
     }
 
-    suspend fun refresh(call: RoutingCall) {
+    suspend fun refresh(call: ApplicationCall) {
         val token: UserTokenRepository by inject()
         val request = call.parameters["refreshToken"]?.decodeURLPart()
         if (request == null) {
@@ -100,7 +100,7 @@ object AuthRoute : SubRoute() {
         call.respond(genTokenResult.data as AccessToken)
     }
 
-    suspend fun logout(call: RoutingCall) {
+    suspend fun logout(call: ApplicationCall) {
         val token: UserTokenRepository by inject()
         val principal = call.principal<JWTPrincipal>()
         val payload = principal?.payload?.getClaim(UserDTO.ID_FIELD)?.asString()

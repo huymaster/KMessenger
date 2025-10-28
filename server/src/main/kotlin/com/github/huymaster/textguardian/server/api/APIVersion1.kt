@@ -1,6 +1,7 @@
 package com.github.huymaster.textguardian.server.api
 
 import com.github.huymaster.textguardian.server.api.v1.AuthRoute
+import com.github.huymaster.textguardian.server.api.v1.UserRoute
 import io.ktor.server.html.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -9,11 +10,12 @@ import kotlinx.html.*
 
 object APIVersion1 : BaseAPI(1) {
     override fun Route.register() {
-        authRoute()
         get("/openapi.yaml") {
             val stream = ClassLoader.getSystemClassLoader().getResourceAsStream("openapi.yaml") ?: return@get
             call.respondOutputStream { stream.copyTo(this) }
         }
+        authRoute()
+        userRoute()
     }
 
     override suspend fun RoutingContext.swaggerProvider() {
@@ -55,5 +57,9 @@ object APIVersion1 : BaseAPI(1) {
         post("/auth/login") { AuthRoute.login(call) }
         get("/auth/refresh") { AuthRoute.refresh(call) }
         protect { delete("/auth/logout") { AuthRoute.logout(call) } }
+    }
+
+    private fun Route.userRoute() {
+        protect { get("/user") { UserRoute.getMe(call) } }
     }
 }

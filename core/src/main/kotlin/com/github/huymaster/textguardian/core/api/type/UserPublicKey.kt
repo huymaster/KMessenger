@@ -5,7 +5,7 @@ import java.util.*
 
 data class UserPublicKey(
     @get:JsonProperty("userId") val userId: UUID,
-    @get:JsonProperty("key") val key: Array<Byte>
+    @get:JsonProperty("key") val key: ByteArray
 ) {
-    constructor(userId: UUID, key: ByteArray) : this(userId, key.toTypedArray())
+    constructor(userId: UUID, key: Array<Byte>) : this(userId, key.toByteArray())
 }

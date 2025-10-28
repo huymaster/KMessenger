@@ -8,7 +8,6 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.html.*
 import io.ktor.server.plugins.statuspages.*
-import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.html.*
@@ -21,8 +20,6 @@ private val exceptionRoot = File("exceptions")
 fun Application.configureRouting() {
     routing {
         get("/") {
-            val fullPath = call.request.path()
-            println(fullPath)
             call.respondHtml {
                 head {
                     title { +"KMessenger" }
@@ -47,9 +44,21 @@ fun Application.configureRouting() {
                 }
             }
         }
-        get("/favicon.ico") { call.respondText("OK") }
+        get("/robots.txt") {
+            call.respondText(
+                """
+                User-agent: *
+                Disallow: /
+            """.trimIndent()
+            )
+        }
+        get("/favicon.ico") {
+            call.response.header(HttpHeaders.CacheControl, "max-age=31536000")
+            call.respondText("OK")
+        }
         registerAPI(TestAPI, this)
         registerAPI(APIVersion1, this)
+        configureHoneypot()
     }
     install(StatusPages) {
         exception(Throwable::class) { call, cause ->

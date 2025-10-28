@@ -3,13 +3,16 @@
 package com.github.huymaster.textguardian.jvm
 
 import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.*
@@ -23,16 +26,60 @@ fun main() = application {
     state.size = DpSize(320.dp, 240.dp)
     state.position = WindowPosition.Aligned(Alignment.Center)
     state.placement = WindowPlacement.Floating
-    Window(
-        state = state,
-        title = "KMessenger",
-        alwaysOnTop = true,
-        onCloseRequest = ::exitApplication
-    ) {
-        MaterialTheme {
-            App()
+    var dSize by remember { mutableStateOf(DpSize.Unspecified) }
+    val density = LocalDensity.current
+    var exitConfirmDialog by remember { mutableStateOf(false) }
+    if (exitConfirmDialog) {
+        DialogWindow(
+            onCloseRequest = { exitConfirmDialog = false },
+            state = rememberDialogState(size = dSize),
+            resizable = false,
+            transparent = true,
+            undecorated = true
+        ) {
+            Box(
+                modifier = Modifier
+                    .wrapContentSize(unbounded = true)
+                    .background(MaterialTheme.colorScheme.surface, MaterialTheme.shapes.medium)
+                    .border(2.dp, MaterialTheme.colorScheme.onSurface, MaterialTheme.shapes.medium)
+                    .onSizeChanged { with(density) { dSize = DpSize(it.width.toDp(), it.height.toDp()) } }
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text("Do you want to exit?")
+                    Row(
+                        modifier = Modifier.padding(start = 64.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        TextButton(
+                            { exitConfirmDialog = false }
+                        ) { Text("No") }
+                        Button(::exitApplication) {
+                            Text("Yes")
+                        }
+                    }
+                }
+            }
         }
-    }
+    } else
+        Window(
+            state = state,
+            title = "KMessenger",
+            onCloseRequest = { exitConfirmDialog = true }
+        ) {
+            MaterialTheme {
+                Scaffold {
+                    Surface(
+                        modifier = Modifier.padding(it)
+                    ) {
+                        App()
+                    }
+                }
+            }
+        }
 }
 
 @Composable
@@ -41,10 +88,9 @@ fun App() {
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            "OS: ${System.getProperty("os.name")}\n" +
-                    "Version: ${System.getProperty("os.version")}\n" +
-                    "Arch: ${System.getProperty("os.arch")}"
-        )
+        Button(
+            modifier = Modifier,
+            onClick = {}
+        ) { Text("Hello world!") }
     }
 }

@@ -24,12 +24,6 @@ application {
     mainClass = mainClassName
 }
 
-sourceSets {
-    main {
-        java.srcDirs("src/main/kotlin")
-    }
-}
-
 dependencies {
     implementation(libs.ktor.server.rate.limiting)
     implementation(libs.ktor.server.core)
@@ -73,6 +67,7 @@ dependencies {
     implementation(libs.mongo.kotlin.extenstions)
     implementation(libs.mongo.bson.kotlinx)
     implementation(project(":core")) { isTransitive = false }
+    implementation(kotlin("test"))
     testImplementation(libs.ktor.server.test.host)
     testImplementation(libs.koin.test)
     testImplementation(libs.koin.test.junit5)
@@ -102,6 +97,9 @@ kotlin {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+tasks.named("compileTestKotlin") {
 }
 
 tasks.register("deploy") {
@@ -135,7 +133,7 @@ tasks.register("deploy") {
             Type=exec
             RemainAfterExit=false
             ExecStart=sudo -i -u root /usr/bin/java -jar /root/server.jar
-            ExecStop=/bin/kill -SIGINT $(MAINPID)
+            ExecStop=touch /root/stop
             Restart=on-failure
             RestartSec=10
 

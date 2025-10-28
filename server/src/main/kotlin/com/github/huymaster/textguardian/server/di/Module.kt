@@ -15,7 +15,7 @@ object Module {
     private val _database
         get() = Database.connect(
             url = "jdbc:postgresql://api-textguardian.ddns.net:5432/postgres",
-            user = "postgres",
+            user = "huymaster",
             password = System.getenv("POSTGRESQL_PASSWORD"),
             dialect = PostgreSqlDialect()
         )

@@ -7,9 +7,16 @@ import io.ktor.server.netty.*
 import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.util.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.PrintStream
+import java.nio.file.FileSystems
+import java.nio.file.Files
+import java.nio.file.StandardWatchEventKinds
 import java.util.*
+import java.util.concurrent.TimeUnit
 import kotlin.system.exitProcess
 
 val runningDirectory = File(File("").absolutePath)
@@ -60,23 +67,52 @@ suspend fun logCallException(
     return traceId
 }
 
+private fun stopListening(onStop: () -> Unit) {
+    CoroutineScope(Job()).launch {
+        val fs = FileSystems.getDefault()
+        val watcher = fs.newWatchService()
+        val path = runningDirectory.toPath()
+        path.register(watcher, StandardWatchEventKinds.ENTRY_CREATE)
+        loop@ do {
+            val key = watcher.take()
+            key.pollEvents().forEach {
+                if (it.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
+                    val file = File(runningDirectory, it.context().toString())
+                    if (file.name == "stop") {
+                        onStop()
+                        file.delete()
+                        return@launch
+                    }
+                }
+            }
+            key.reset()
+        } while (true)
+    }
+}
+
 fun main() {
     runCatching {
         Thread.setDefaultUncaughtExceptionHandler { _, e ->
             logException(e, exceptionDirectory)
             exitProcess(1)
         }
-        embeddedServer(Netty, port = 8080) { module() }.start(true)
+        Files.list(File(runningDirectory, "logs").toPath())
+            .filter { it.toFile().isFile }
+            .forEach { Files.delete(it) }
+        File(runningDirectory, "stop").takeIf { it.exists() }?.delete()
+        val server = embeddedServer(Netty, port = 8080) { module() }
+        stopListening { server.stop(5, 30, TimeUnit.SECONDS) }
+        server.start(true)
     }.onFailure { logException(it) }
 }
 
 fun Application.module() {
     configureForwardedHeader()
+    configureSecurity()
     configureRateLimit()
     configureDependencyInject()
     configureSerialization()
     configureAuthentication()
-    configureSecurity()
     configureHTTP()
     configureRouting()
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.huymaster.textguardian.server.data.repository.RepositoryResult
 import com.github.huymaster.textguardian.server.net.AUTH_NAME
 import io.ktor.http.*
+import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.html.*
 import io.ktor.server.request.*
@@ -62,27 +63,27 @@ abstract class BaseAPI protected constructor(val version: Int) : KoinComponent {
         authenticate(AUTH_NAME, build = route)
     }
 
-    suspend inline fun <reified T : Any> RoutingCall.receiveNullableNoThrow(): T? =
+    suspend inline fun <reified T : Any> ApplicationCall.receiveNullableNoThrow(): T? =
         runCatching { this.receive<T>() }.getOrNull()
 
-    suspend inline fun <reified T : Any> RoutingCall.receive(
-        onSuccess: suspend RoutingCall.(T) -> Unit
+    suspend inline fun <reified T : Any> ApplicationCall.receive(
+        onSuccess: suspend ApplicationCall.(T) -> Unit
     ) {
         runCatching { this.receive<T>() }
             .onSuccess { onSuccess(it) }
             .onFailure { sendErrorResponse("Invalid request", it) }
     }
 
-    suspend inline fun <reified T : Any> RoutingCall.receive(
-        onSuccess: suspend RoutingCall.(T) -> Unit,
-        onFailure: suspend RoutingCall.(Throwable) -> Unit
+    suspend inline fun <reified T : Any> ApplicationCall.receive(
+        onSuccess: suspend ApplicationCall.(T) -> Unit,
+        onFailure: suspend ApplicationCall.(Throwable) -> Unit
     ) {
         runCatching { this.receive<T>() }
             .onSuccess { onSuccess(it) }
             .onFailure { onFailure(it) }
     }
 
-    suspend fun RoutingCall.sendErrorResponse(
+    suspend fun ApplicationCall.sendErrorResponse(
         message: String,
         exception: Throwable? = null,
         status: HttpStatusCode = HttpStatusCode.BadRequest
@@ -94,7 +95,7 @@ abstract class BaseAPI protected constructor(val version: Int) : KoinComponent {
             respondText(message, status = status)
     }
 
-    suspend fun RoutingCall.sendErrorResponse(
+    suspend fun ApplicationCall.sendErrorResponse(
         error: RepositoryResult
     ) = sendErrorResponse(message = error.message, status = error.desiredStatus)
 }

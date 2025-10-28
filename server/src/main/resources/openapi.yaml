@@ -5,9 +5,11 @@ info:
   version: 1.0.0
 servers:
   - url: https://api-textguardian.ddns.net/api/v1
+  - url: http://localhost:8080/api/v1
 tags:
   - name: basic
   - name: auth
+  - name: user
 components:
   securitySchemes:
     bearerAuth:
@@ -60,7 +62,28 @@ components:
           type: string
       required:
         - accessToken
-
+    UserInfo:
+      type: object
+      properties:
+        userId:
+          type: string
+        phoneNumber:
+          type: string
+        username:
+          type: string
+        displayName:
+          type: string
+        lastSeen:
+          type: number
+        createdAt:
+          type: number
+        avatarUrl:
+          type: string
+        bio:
+          type: string
+      required:
+        - userId
+        - phoneNumber
 paths:
   /health:
     get:
@@ -199,3 +222,26 @@ paths:
           description: Server not available
       tags:
         - auth
+
+  /user:
+    get:
+      summary: Get user info
+      security:
+        - bearerAuth: [ ]
+      responses:
+        200:
+          description: User info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserInfo"
+        401:
+          description: Not allowed to retrieve user info
+        429:
+          description: Too many requests
+        500:
+          description: Failed to get user info [Server error]
+        502:
+          description: Server not available
+      tags:
+        - user

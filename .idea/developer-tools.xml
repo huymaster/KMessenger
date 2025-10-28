@@ -4,8 +4,8 @@
     <developerToolsConfigurations>
       <developerToolConfiguration developerToolId="base64-encoder-decoder" id="9860a553-84fc-4d22-a483-6e4f32adc9a9" name="Workbench">
         <properties>
-          <property key="sourceText" type="INPUT" value="kotlin.String|My system error" />
-          <property key="targetText" type="INPUT" value="kotlin.String|TXkgc3lzdGVtIGVycm9y" />
+          <property key="sourceText" type="INPUT" value="kotlin.String|huymaster:Huy062425Master" />
+          <property key="targetText" type="INPUT" value="kotlin.String|aHV5bWFzdGVyOkh1eTA2MjQyNU1hc3Rlcg==" />
         </properties>
       </developerToolConfiguration>
     </developerToolsConfigurations>

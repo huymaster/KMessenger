@@ -3,7 +3,9 @@ package com.github.huymaster.textguardian.server.data.repository
 import com.github.huymaster.textguardian.core.entity.UserEntity
 import com.github.huymaster.textguardian.server.data.table.UserTable
 import io.ktor.http.*
+import org.ktorm.dsl.and
 import org.ktorm.dsl.eq
+import org.ktorm.dsl.neq
 import java.time.Instant
 import java.util.*
 
@@ -31,6 +33,16 @@ class UserRepository() : BaseRepository<UserEntity, UserTable>(UserTable) {
         return RepositoryResult.Success(entity)
     }
 
+    suspend fun getUserByUserId(userId: String?): RepositoryResult {
+        val uid = runCatching { UUID.fromString(userId) }.getOrNull()
+        if (uid == null)
+            return RepositoryResult.Error("Invalid user id", HttpStatusCode.BadRequest)
+        val entity = find { it.userId eq uid }
+        if (entity == null)
+            return RepositoryResult.Error("User not found", HttpStatusCode.NotFound)
+        return RepositoryResult.Success(entity)
+    }
+
     suspend fun getUserByUserId(userId: UUID): RepositoryResult {
         val entity = find { it.userId eq userId }
         if (entity == null)
@@ -50,5 +62,19 @@ class UserRepository() : BaseRepository<UserEntity, UserTable>(UserTable) {
         if (entity == null)
             return RepositoryResult.Error("User not found", HttpStatusCode.NotFound)
         return RepositoryResult.Success(entity)
+    }
+
+    suspend fun updateUsername(userId: UUID, username: String?): RepositoryResult {
+        val findResult = getUserByUserId(userId)
+        if (findResult !is RepositoryResult.Success<*>)
+            return findResult
+        val updateResult =
+            update({ (it.userId eq userId) and (it.username neq (username ?: "")) }) { it.username = username }
+        if (updateResult == null)
+            return RepositoryResult.Success(
+                Unit,
+                desiredStatus = HttpStatusCode.NoContent
+            )
+        return RepositoryResult.Success(Unit)
     }
 }

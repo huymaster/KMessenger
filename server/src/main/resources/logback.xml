@@ -18,8 +18,15 @@
         </rollingPolicy>
     </appender>
 
+    <appender name="WS" class="com.github.huymaster.textguardian.server.api.WebSocketLogAppender">
+        <encoder>
+            <pattern>%d{YYYY-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
     <root level="INFO">
         <appender-ref ref="STDOUT"/>
         <appender-ref ref="FILE"/>
+        <appender-ref ref="WS"/>
     </root>
 </configuration>
