@@ -1,5 +1,5 @@
 [versions]
-kotlin = "2.2.20"
+kotlin = "2.2.21"
 composeHotReload = "1.0.0-rc02"
 composeMultiplatform = "1.9.1"
 
@@ -68,7 +68,7 @@ firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "fir
 firebase-auth = { module = "com.google.firebase:firebase-auth" }
 firebase-messaging = { module = "com.google.firebase:firebase-messaging" }
 
-ktor-server-rate-limiting = { module = "io.ktor:ktor-server-rate-limit", version = "ktor" }
+ktor-server-rate-limiting = { module = "io.ktor:ktor-server-rate-limit", version.ref = "ktor" }
 ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
 ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor" }
 ktor-server-auth-jwt = { module = "io.ktor:ktor-server-auth-jwt", version.ref = "ktor" }

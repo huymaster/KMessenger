@@ -1,9 +1,6 @@
 package com.github.huymaster.textguardian.core.api
 
-import com.github.huymaster.textguardian.core.api.type.AccessToken
-import com.github.huymaster.textguardian.core.api.type.LoginRequest
-import com.github.huymaster.textguardian.core.api.type.RefreshToken
-import com.github.huymaster.textguardian.core.api.type.RegisterRequest
+import com.github.huymaster.textguardian.core.api.type.*
 import retrofit2.Response
 import retrofit2.http.*
 
@@ -29,4 +26,13 @@ interface APIVersion1Service {
         @Header("Authorization") bearer: String,
         @Query("refreshToken") refreshToken: String
     ): Response<Unit>
+
+    @GET("$PREFIX/user")
+    suspend fun getUserInfo(@Header("Authorization") bearer: String): Response<UserInfo>
+
+    @PUT("$PREFIX/user")
+    suspend fun updateUserInfo(
+        @Header("Authorization") bearer: String,
+        @Body body: BasicUserInfo
+    ): Response<List<String>>
 }

@@ -17,7 +17,6 @@ fun Application.configureSecurity() {
 private val DISPATCHER = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
 private val SCOPE = CoroutineScope(DISPATCHER)
 private val LOGGER = LoggerFactory.getLogger("SecureLayer")
-private const val MAX_IP_STR_LENGTH = 45
 
 private enum class Direction(val arrow: String) {
     IN(">>>"), OUT("<<<"), FAIL("-X-")
@@ -30,7 +29,7 @@ private fun buildString(call: ApplicationCall, direction: Direction): String {
     val scheme = call.request.origin.scheme
     val code = call.response.status()?.value
 
-    builder.append("[${ip}]".padEnd(MAX_IP_STR_LENGTH, ' '))
+    builder.append("[${ip}]")
     builder.append(" ${direction.arrow} ")
     builder.append("[${scheme.padEnd(5, '-')}] ")
     if (code != null)

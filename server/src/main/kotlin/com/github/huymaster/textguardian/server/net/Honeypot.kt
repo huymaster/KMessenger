@@ -66,7 +66,7 @@ private suspend fun methodChooser(call: RoutingCall) {
 private suspend fun zipBomb(call: RoutingCall) {
     CURRENT_ZIP_BOMB.incrementAndGet()
     try {
-        val inStream = ClassLoader.getSystemClassLoader().getResourceAsStream("bomb.zip") ?: return
+        val inStream = ClassLoader.getSystemClassLoader().getResourceAsStream("bomb.txt") ?: return
         val content: ByteArray = inStream.readBytes()
         runCatching {
             call.response.header(HttpHeaders.ContentLength, content.size)

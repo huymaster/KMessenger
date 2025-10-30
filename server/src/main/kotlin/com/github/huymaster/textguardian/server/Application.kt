@@ -96,9 +96,12 @@ fun main() {
             logException(e, exceptionDirectory)
             exitProcess(1)
         }
-        Files.list(File(runningDirectory, "logs").toPath())
-            .filter { it.toFile().isFile }
-            .forEach { Files.delete(it) }
+        File(runningDirectory, "logs").takeIf { it.exists() }
+            ?.let { file ->
+                Files.list(file.toPath())
+                    .filter { it.toFile().isFile }
+                    .forEach { Files.delete(it) }
+            }
         File(runningDirectory, "stop").takeIf { it.exists() }?.delete()
         val server = embeddedServer(Netty, port = 8080) { module() }
         stopListening { server.stop(5, 30, TimeUnit.SECONDS) }

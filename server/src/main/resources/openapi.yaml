@@ -84,6 +84,21 @@ components:
       required:
         - userId
         - phoneNumber
+    BasicUserInfo:
+      type: object
+      properties:
+        username:
+          type: string
+        displayName:
+          type: string
+        lastSeen:
+          type: number
+        createdAt:
+          type: number
+        avatarUrl:
+          type: string
+        bio:
+          type: string
 paths:
   /health:
     get:
@@ -241,6 +256,38 @@ paths:
           description: Too many requests
         500:
           description: Failed to get user info [Server error]
+        502:
+          description: Server not available
+      tags:
+        - user
+    put:
+      summary: Update user info
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BasicUserInfo"
+      responses:
+        200:
+          description: User info updated
+          content:
+            application/json:
+              schema:
+                description: Array of updated fields
+                type: array
+                items:
+                  type: string
+        204:
+          description: No fields updated
+        401:
+          description: Not allowed to update user info
+        429:
+          description: Too many requests
+        500:
+          description: Failed to update user info [Server error]
         502:
           description: Server not available
       tags:

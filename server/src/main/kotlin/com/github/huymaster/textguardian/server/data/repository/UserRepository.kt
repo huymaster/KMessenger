@@ -3,9 +3,9 @@ package com.github.huymaster.textguardian.server.data.repository
 import com.github.huymaster.textguardian.core.entity.UserEntity
 import com.github.huymaster.textguardian.server.data.table.UserTable
 import io.ktor.http.*
-import org.ktorm.dsl.and
 import org.ktorm.dsl.eq
-import org.ktorm.dsl.neq
+import org.postgresql.util.PSQLException
+import org.postgresql.util.PSQLState
 import java.time.Instant
 import java.util.*
 
@@ -65,16 +65,67 @@ class UserRepository() : BaseRepository<UserEntity, UserTable>(UserTable) {
     }
 
     suspend fun updateUsername(userId: UUID, username: String?): RepositoryResult {
-        val findResult = getUserByUserId(userId)
-        if (findResult !is RepositoryResult.Success<*>)
-            return findResult
-        val updateResult =
-            update({ (it.userId eq userId) and (it.username neq (username ?: "")) }) { it.username = username }
-        if (updateResult == null)
-            return RepositoryResult.Success(
-                Unit,
-                desiredStatus = HttpStatusCode.NoContent
-            )
-        return RepositoryResult.Success(Unit)
+        val normalizedUsername = username?.trimIndent()?.lowercase()
+        if (normalizedUsername == null) {
+            val updateResult = update({ it.userId eq userId }) { it.username = null }
+            return if (updateResult != null)
+                RepositoryResult.Success(Unit)
+            else
+                RepositoryResult.Success(Unit, HttpStatusCode.NoContent)
+        }
+        try {
+            val updateResult = update({ it.userId eq userId }) { it.username = normalizedUsername }
+            return if (updateResult != null)
+                RepositoryResult.Success(Unit)
+            else
+                RepositoryResult.Success(Unit, HttpStatusCode.NoContent)
+        } catch (e: PSQLException) {
+            if (e.sqlState == PSQLState.UNIQUE_VIOLATION.state)
+                return RepositoryResult.Error("Username already used", HttpStatusCode.Conflict)
+            return RepositoryResult.Error("An internal error occurred", HttpStatusCode.InternalServerError)
+        }
+    }
+
+    suspend fun updateDisplayName(userId: UUID, displayName: String?): RepositoryResult {
+        val normalizedDisplayName = displayName?.trim()
+        val updateResult: UserEntity? = update({ it.userId eq userId }) {
+            it.displayName = normalizedDisplayName
+        }
+        return if (updateResult != null)
+            RepositoryResult.Success(Unit, desiredStatus = HttpStatusCode.NoContent)
+        else
+            RepositoryResult.Success(Unit, HttpStatusCode.NoContent)
+    }
+
+    suspend fun updateLastSeen(userId: UUID, lastSeen: Instant?): RepositoryResult {
+        if (lastSeen == null)
+            return RepositoryResult.Success(Unit, HttpStatusCode.NoContent)
+        val updateResult: UserEntity? = update({ it.userId eq userId }) {
+            it.lastSeen = lastSeen
+        }
+        return if (updateResult != null)
+            RepositoryResult.Success(Unit, desiredStatus = HttpStatusCode.NoContent)
+        else
+            RepositoryResult.Success(Unit, HttpStatusCode.NoContent)
+    }
+
+    suspend fun updateAvatar(userId: UUID, avatarUrl: String?): RepositoryResult {
+        val updateResult: UserEntity? = update({ it.userId eq userId }) {
+            it.avatarUrl = avatarUrl
+        }
+        return if (updateResult != null)
+            RepositoryResult.Success(Unit, desiredStatus = HttpStatusCode.NoContent)
+        else
+            RepositoryResult.Success(Unit, HttpStatusCode.NoContent)
+    }
+
+    suspend fun updateBio(userId: UUID, bio: String?): RepositoryResult {
+        val updateResult: UserEntity? = update({ it.userId eq userId }) {
+            it.bio = bio
+        }
+        return if (updateResult != null)
+            RepositoryResult.Success(Unit, desiredStatus = HttpStatusCode.NoContent)
+        else
+            RepositoryResult.Success(Unit, HttpStatusCode.NoContent)
     }
 }
