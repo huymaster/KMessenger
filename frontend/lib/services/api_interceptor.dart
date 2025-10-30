@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../models/api_response.dart';
 import '../utils/api_constants.dart';
 import 'auth_service.dart';

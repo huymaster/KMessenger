@@ -23,6 +23,10 @@ object APIVersion1 : BaseAPI(1) {
         call.respondHtml {
             head {
                 title { +"APIv$version" }
+                meta {
+                    name = "viewport"
+                    content = "width=device-width, initial-scale=1.0"
+                }
                 link(
                     href = "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.29.1/swagger-ui.min.css",
                     rel = LinkRel.stylesheet
@@ -61,5 +65,6 @@ object APIVersion1 : BaseAPI(1) {
 
     private fun Route.userRoute() {
         protect { get("/user") { UserRoute.getMe(call) } }
+        protect { put("/user") { UserRoute.updateInfo(call) } }
     }
 }

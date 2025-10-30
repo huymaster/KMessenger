@@ -7,6 +7,10 @@ plugins {
     alias(libs.plugins.ktor)
 }
 
+group = "com.github.huymaster"
+version = "0.0.1"
+val mainClassName = "com.github.huymaster.textguardian.server.ApplicationKt"
+
 buildscript {
     repositories {
         mavenCentral()
@@ -15,10 +19,6 @@ buildscript {
         classpath("com.hierynomus:sshj:0.40.0")
     }
 }
-
-group = "com.github.huymaster"
-version = "0.0.1"
-val mainClassName = "com.github.huymaster.textguardian.server.ApplicationKt"
 
 application {
     mainClass = mainClassName
@@ -48,7 +48,6 @@ dependencies {
     implementation(libs.firebase.admin)
     implementation(platform(libs.koin.bom))
     implementation(libs.koin.core)
-    implementation(libs.koin.annotations)
     implementation(libs.koin.ktor)
     implementation(libs.jackson)
     implementation(libs.jackson.module.kotlin)
@@ -67,7 +66,7 @@ dependencies {
     implementation(libs.mongo.kotlin.extenstions)
     implementation(libs.mongo.bson.kotlinx)
     implementation(project(":core")) { isTransitive = false }
-    implementation(kotlin("test"))
+    testImplementation(kotlin("test"))
     testImplementation(libs.ktor.server.test.host)
     testImplementation(libs.koin.test)
     testImplementation(libs.koin.test.junit5)
@@ -95,11 +94,8 @@ kotlin {
     jvmToolchain(21)
 }
 
-tasks.withType<Test> {
+tasks.test {
     useJUnitPlatform()
-}
-
-tasks.named("compileTestKotlin") {
 }
 
 tasks.register("deploy") {
