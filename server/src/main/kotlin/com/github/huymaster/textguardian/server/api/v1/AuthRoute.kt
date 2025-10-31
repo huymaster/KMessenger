@@ -87,7 +87,7 @@ object AuthRoute : SubRoute() {
     suspend fun refresh(call: ApplicationCall) {
         val token: UserTokenRepository by inject()
         val request = call.parameters["refreshToken"]?.decodeURLPart()
-        if (request == null) {
+        if (request == null || request.isBlank()) {
             call.sendErrorResponse("Invalid request. [refreshToken] required")
             return
         }

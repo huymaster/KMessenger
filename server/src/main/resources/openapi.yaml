@@ -87,6 +87,8 @@ components:
     BasicUserInfo:
       type: object
       properties:
+        phoneNumber:
+          type: string
         username:
           type: string
         displayName:
@@ -99,14 +101,16 @@ components:
           type: string
         bio:
           type: string
+      required:
+        - phoneNumber
 paths:
   /health:
     get:
       summary: Health check
       responses:
-        200:
+        "200":
           description: Server is running
-        502:
+        "502":
           description: Server not available
       tags:
         - basic
@@ -123,17 +127,17 @@ paths:
               phoneNumber: "0123456789"
               password: "password"
       responses:
-        200:
+        "200":
           description: Register success
-        400:
+        "400":
           description: Missing required fields [phoneNumber, password]. Or invalid format of phoneNumber or password.
-        409:
+        "409":
           description: Phone number already exists
-        429:
+        "429":
           description: Too many requests
-        500:
+        "500":
           description: Failed to create user [Server error]
-        502:
+        "502":
           description: Server not available
       tags:
         - auth
@@ -157,23 +161,23 @@ paths:
                   password: "password"
                   deviceInfo: "deviceInfo"
       responses:
-        200:
+        "200":
           description: Login success
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/RefreshToken"
-        400:
+        "400":
           description: Missing required fields [phoneNumber, password]. Or invalid format of phoneNumber or password.
-        401:
+        "401":
           description: Wrong password
-        404:
+        "404":
           description: User not found
-        429:
+        "429":
           description: Too many requests
-        500:
+        "500":
           description: Failed to login and create refresh token [Server error]
-        502:
+        "502":
           description: Server not available
       tags:
         - auth
@@ -187,26 +191,61 @@ paths:
           schema:
             type: string
       responses:
-        200:
+        "200":
           description: Refresh token success
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/AccessToken"
-        400:
+        "400":
           description: Missing required fields [refreshToken]. Or invalid format of refreshToken.
-        403:
+        "403":
           description: Refresh token expired or revoked
-        404:
+        "404":
           description: Refresh token not found
-        429:
+        "429":
           description: Too many requests
-        500:
+        "500":
           description: Failed to refresh token [Server error]
-        502:
+        "502":
           description: Server not available
       tags:
         - auth
+  /users:
+    get:
+      summary: Find users by query
+      description: Must provide at least one of username or phoneNumber. If both are provided, username will be used.
+      parameters:
+        - name: username
+          in: query
+          description: Username to search
+          required: false
+          schema:
+            type: string
+        - name: phoneNumber
+          in: query
+          description: Phone number to search
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BasicUserInfo"
+        "429":
+          description: Too many requests
+        "500":
+          description: Failed to get user info [Server error]
+        "502":
+          description: Server not available
+      tags:
+        - user
+
   /auth/logout:
     delete:
       summary: Revoke refresh token
@@ -219,49 +258,48 @@ paths:
       security:
         - bearerAuth: [ ]
       responses:
-        200:
+        "200":
           description: Logout success
-        400:
+        "400":
           description: Missing required fields [refreshToken]. Or invalid format of refreshToken.
-        401:
+        "401":
           description: Unauthorized
-        403:
+        "403":
           description: Refresh token expired or revoked
-        404:
+        "404":
           description: Refresh token not found
-        429:
+        "429":
           description: Too many requests
-        500:
+        "500":
           description: Failed to logout [Server error]
-        502:
+        "502":
           description: Server not available
       tags:
         - auth
-
   /user:
     get:
-      summary: Get user info
+      summary: Get current user info
       security:
         - bearerAuth: [ ]
       responses:
-        200:
+        "200":
           description: User info
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/UserInfo"
-        401:
+        "401":
           description: Not allowed to retrieve user info
-        429:
+        "429":
           description: Too many requests
-        500:
+        "500":
           description: Failed to get user info [Server error]
-        502:
+        "502":
           description: Server not available
       tags:
         - user
     put:
-      summary: Update user info
+      summary: Update current user info
       security:
         - bearerAuth: [ ]
       requestBody:
@@ -271,7 +309,7 @@ paths:
             schema:
               $ref: "#/components/schemas/BasicUserInfo"
       responses:
-        200:
+        "200":
           description: User info updated
           content:
             application/json:
@@ -280,15 +318,15 @@ paths:
                 type: array
                 items:
                   type: string
-        204:
+        "204":
           description: No fields updated
-        401:
+        "401":
           description: Not allowed to update user info
-        429:
+        "429":
           description: Too many requests
-        500:
+        "500":
           description: Failed to update user info [Server error]
-        502:
+        "502":
           description: Server not available
       tags:
         - user

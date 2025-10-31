@@ -3,10 +3,12 @@ package com.github.huymaster.textguardian.server.data.repository
 import com.auth0.jwt.JWT
 import com.github.huymaster.textguardian.core.api.type.AccessToken
 import com.github.huymaster.textguardian.core.api.type.RefreshToken
-import com.github.huymaster.textguardian.core.dto.UserDTO
 import com.github.huymaster.textguardian.core.entity.UserTokenEntity
 import com.github.huymaster.textguardian.server.data.table.UserTokenTable
 import com.github.huymaster.textguardian.server.net.ALGORITHM
+import com.github.huymaster.textguardian.server.net.JWT_EXPIRE_MIN
+import com.github.huymaster.textguardian.server.net.REFRESH_TOKEN_CLAIM
+import com.github.huymaster.textguardian.server.net.USER_ID_CLAIM
 import io.ktor.http.*
 import org.ktorm.dsl.eq
 import java.security.SecureRandom
@@ -28,10 +30,11 @@ class UserTokenRepository() : BaseRepository<UserTokenEntity, UserTokenTable>(Us
         return encoder.encodeToString(token)
     }
 
-    private fun createAccessToken(owner: UUID): String {
+    private fun createAccessToken(refreshToken: String, owner: UUID): String {
         return JWT.create()
-            .withClaim(UserDTO.ID_FIELD, owner.toString())
-            .withExpiresAt(Instant.now().plus(1, ChronoUnit.HOURS))
+            .withClaim(USER_ID_CLAIM, owner.toString())
+            .withClaim(REFRESH_TOKEN_CLAIM, refreshToken)
+            .withExpiresAt(Instant.now().plus(JWT_EXPIRE_MIN, ChronoUnit.MINUTES))
             .sign(ALGORITHM)
     }
 
@@ -68,7 +71,7 @@ class UserTokenRepository() : BaseRepository<UserTokenEntity, UserTokenTable>(Us
             return checkResult
 
         val owner = (checkResult.data as UserTokenEntity).userId
-        val token = createAccessToken(owner)
+        val token = createAccessToken(refreshToken, owner)
         return RepositoryResult.Success(AccessToken(token))
     }
 

@@ -15,6 +15,8 @@ import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.response.*
 import org.koin.core.component.inject
+import org.ktorm.dsl.eq
+import org.ktorm.dsl.like
 import java.util.*
 
 object UserRoute : SubRoute() {
@@ -68,5 +70,42 @@ object UserRoute : SubRoute() {
             call.respond(HttpStatusCode.NoContent, emptyList<String>())
         else
             call.respond(updated)
+    }
+
+    suspend fun getUsers(call: ApplicationCall) {
+        if (call.parameters.contains(UserDTO.USERNAME_FIELD))
+            getUserByUsername(call, call.parameters[UserDTO.USERNAME_FIELD]!!)
+        else if (call.parameters.contains(UserDTO.PHONE_NUMBER_FIELD))
+            getUserByPhoneNumber(call, call.parameters[UserDTO.PHONE_NUMBER_FIELD]!!)
+        else
+            call.sendErrorResponse("Invalid request. Must have one of [${UserDTO.USERNAME_FIELD}, ${UserDTO.PHONE_NUMBER_FIELD}] parameters")
+    }
+
+    private suspend fun getUserByUsername(call: ApplicationCall, username: String) {
+        val user: UserRepository by inject()
+        if (username.isBlank()) {
+            call.sendErrorResponse("Invalid username")
+            return
+        }
+        val e = user.findAll { it.username like "${username}%" }
+        if (e.isEmpty()) {
+            call.sendErrorResponse("User not found", status = HttpStatusCode.NotFound)
+            return
+        }
+        call.respond(e.map { BasicUserInfo(it) })
+    }
+
+    private suspend fun getUserByPhoneNumber(call: ApplicationCall, phoneNumber: String) {
+        val user: UserRepository by inject()
+        if (phoneNumber.isBlank()) {
+            call.sendErrorResponse("Invalid phone number")
+            return
+        }
+        val e = user.findAll { it.phoneNumber eq phoneNumber }
+        if (e.isEmpty()) {
+            call.sendErrorResponse("User not found", status = HttpStatusCode.NotFound)
+            return
+        }
+        call.respond(e.map { BasicUserInfo(it) })
     }
 }

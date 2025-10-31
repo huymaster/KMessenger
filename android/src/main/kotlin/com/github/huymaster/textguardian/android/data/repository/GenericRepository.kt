@@ -1,5 +1,6 @@
 package com.github.huymaster.textguardian.android.data.repository
 
+import android.util.Log
 import com.github.huymaster.textguardian.core.api.APIVersion1Service
 import kotlinx.coroutines.CancellationException
 
@@ -24,7 +25,8 @@ class GenericRepository(
             }
         } catch (e: Exception) {
             if (e is CancellationException) throw e
-            ServiceHealth.Unhealthy("Check service health failed: ${e.javaClass.simpleName}")
+            Log.wtf(null, e)
+            ServiceHealth.Unhealthy("Check service health failed: ${e.javaClass.simpleName}.\nPlease check your internet connection")
         }
     }
 }

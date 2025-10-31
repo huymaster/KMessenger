@@ -20,6 +20,15 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("rd") {
+            storeFile = file("/home/huymaster/kmessenger.jks")
+            storePassword = "062425"
+            keyAlias = "kmessenger"
+            keyPassword = "062425"
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
@@ -28,6 +37,10 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("rd")
+        }
+        debug {
+            signingConfig = signingConfigs.getByName("rd")
         }
     }
     compileOptions {

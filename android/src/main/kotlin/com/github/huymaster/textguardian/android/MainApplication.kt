@@ -2,16 +2,20 @@ package com.github.huymaster.textguardian.android
 
 import android.app.Application
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.github.huymaster.textguardian.android.di.Module
 import com.github.huymaster.textguardian.core.di.SharedModule
 import com.google.firebase.FirebaseApp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.KoinApplication
@@ -52,6 +56,9 @@ class MainApplication : Application() {
         ProcessLifecycleOwner.get().lifecycle.addObserver(ApplicationState)
         startKoin { init(this@MainApplication) }
         super.onCreate()
-        FirebaseApp.initializeApp(this)
+        CoroutineScope(Dispatchers.IO).launch {
+            runCatching { FirebaseApp.initializeApp(this@MainApplication) }
+                .onFailure { Log.e("MainApplication", "Failed to initialize Firebase", it) }
+        }
     }
 }
