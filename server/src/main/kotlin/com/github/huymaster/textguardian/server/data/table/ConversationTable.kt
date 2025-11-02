@@ -8,10 +8,12 @@ import org.ktorm.schema.varchar
 object ConversationTable : BaseTable<ConversationEntity>("conversation") {
     val conversationId = uuid("conversation_id").primaryKey()
         .bindTo { it.conversationId }
-    val createdAt = timestamp("created_at")
-        .bindTo { it.createdAt }
     val name = varchar("name")
         .bindTo { it.name }
     val creator = uuid("creator")
         .bindTo { it.creator }
+    val createdAt = timestamp("created_at")
+        .bindTo { it.createdAt }
+    val lastUpdated = timestamp("last_updated")
+        .bindTo { it.lastUpdated }
 }

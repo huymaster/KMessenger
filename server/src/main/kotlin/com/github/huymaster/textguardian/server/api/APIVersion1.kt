@@ -17,6 +17,7 @@ object APIVersion1 : BaseAPI(1) {
         }
         authRoute()
         userRoute()
+        conversationRoute()
     }
 
     override suspend fun RoutingContext.swaggerProvider() {
@@ -75,6 +76,7 @@ object APIVersion1 : BaseAPI(1) {
     private fun Route.conversationRoute() {
         protect {
             get("/conversations") { ConversationRoute.getConversations(call) }
+            post("/conversation") { ConversationRoute.createConvertation(call) }
         }
     }
 }

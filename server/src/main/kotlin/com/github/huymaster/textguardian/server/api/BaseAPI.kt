@@ -1,11 +1,13 @@
 package com.github.huymaster.textguardian.server.api
 
+import com.auth0.jwt.interfaces.Claim
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.huymaster.textguardian.server.data.repository.RepositoryResult
 import com.github.huymaster.textguardian.server.net.AUTH_NAME
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
 import io.ktor.server.html.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -98,4 +100,14 @@ abstract class BaseAPI protected constructor(val version: Int) : KoinComponent {
     suspend fun ApplicationCall.sendErrorResponse(
         error: RepositoryResult
     ) = sendErrorResponse(message = error.message, status = error.desiredStatus)
+
+    suspend fun <T : Any> ApplicationCall.getClaim(claim: String, converter: Claim.() -> T): T? {
+        val principal = principal<JWTPrincipal>()
+        val claimValue = principal?.payload?.getClaim(claim)
+        return claimValue?.let {
+            runCatching { converter(it) }
+                .onFailure { e -> logger.error("Failed to convert claim $claim", e) }
+                .getOrNull()
+        }
+    }
 }

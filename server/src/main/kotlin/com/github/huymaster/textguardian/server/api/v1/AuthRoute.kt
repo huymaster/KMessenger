@@ -4,8 +4,8 @@ import com.github.huymaster.textguardian.core.api.type.AccessToken
 import com.github.huymaster.textguardian.core.api.type.LoginRequest
 import com.github.huymaster.textguardian.core.api.type.RefreshToken
 import com.github.huymaster.textguardian.core.api.type.RegisterRequest
-import com.github.huymaster.textguardian.core.dto.UserDTO
 import com.github.huymaster.textguardian.core.entity.UserEntity
+import com.github.huymaster.textguardian.server.api.APIVersion1.getClaim
 import com.github.huymaster.textguardian.server.api.APIVersion1.receiveNullableNoThrow
 import com.github.huymaster.textguardian.server.api.APIVersion1.sendErrorResponse
 import com.github.huymaster.textguardian.server.api.SubRoute
@@ -13,10 +13,9 @@ import com.github.huymaster.textguardian.server.data.repository.CredentialReposi
 import com.github.huymaster.textguardian.server.data.repository.RepositoryResult
 import com.github.huymaster.textguardian.server.data.repository.UserRepository
 import com.github.huymaster.textguardian.server.data.repository.UserTokenRepository
+import com.github.huymaster.textguardian.server.net.USER_ID_CLAIM
 import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.auth.*
-import io.ktor.server.auth.jwt.*
 import io.ktor.server.response.*
 import org.koin.core.component.inject
 import org.ktorm.database.Database
@@ -102,9 +101,8 @@ object AuthRoute : SubRoute() {
 
     suspend fun logout(call: ApplicationCall) {
         val token: UserTokenRepository by inject()
-        val principal = call.principal<JWTPrincipal>()
-        val payload = principal?.payload?.getClaim(UserDTO.ID_FIELD)?.asString()
-        if (principal == null || payload == null) {
+        val payload = call.getClaim(USER_ID_CLAIM) { asString() }
+        if (payload == null) {
             call.sendErrorResponse("Not allowed to revoke this token", status = HttpStatusCode.Unauthorized)
             return
         }

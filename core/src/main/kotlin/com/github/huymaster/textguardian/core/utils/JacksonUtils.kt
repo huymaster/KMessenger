@@ -12,7 +12,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.databind.cfg.JsonNodeFeature
 import com.fasterxml.jackson.databind.json.JsonMapper
-import com.github.huymaster.textguardian.core.adapter.BaseDTOAdapter
 import com.github.huymaster.textguardian.core.adapter.InstantAdapter
 
 fun initJsonMapper() = initJsonMapper(JsonMapper.builder())
@@ -54,7 +53,6 @@ fun JsonMapper.Builder.init(): ObjectMapper {
     configure(StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION, true)
 
     val mapper = build()
-    mapper.registerModule(BaseDTOAdapter)
     mapper.registerModule(InstantAdapter)
     mapper.findAndRegisterModules()
 

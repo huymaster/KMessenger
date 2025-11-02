@@ -1,15 +1,14 @@
 package com.github.huymaster.textguardian.test
 
-import com.github.huymaster.textguardian.core.api.APIVersion1Service
 import com.github.huymaster.textguardian.core.di.SharedModule
-import com.github.huymaster.textguardian.core.utils.createService
+import com.github.huymaster.textguardian.server.data.repository.ConversationRepository
 import com.github.huymaster.textguardian.server.di.Module
-import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.extension.RegisterExtension
 import org.koin.test.KoinTest
+import org.koin.test.inject
 import org.koin.test.junit5.KoinTestExtension
+import java.util.*
 
 class UnitTest : KoinTest {
     @JvmField
@@ -20,17 +19,9 @@ class UnitTest : KoinTest {
     }
 
     @Test
-    fun test() {
-        val svc = createService(APIVersion1Service::class, "http://localhost:8080")
-        runBlocking {
-            val token =
-                svc.refresh("KGuUkGNL/4Ak9R+u3LJTk14bX6QG8reIR1FVIyHDyplisaecjdh1Sl/5ZTezN/XIzjU4qjEyD/L9eIn4el5s7A==")
-            val tk = token.body()
-            assertNotNull(tk)
-            val info = svc.getUserInfo(tk.accessToken)
-            println(info)
-            println(info.body())
-            println(info.errorBody()?.string())
-        }
+    suspend fun test() {
+        val var1: ConversationRepository by inject()
+        val o = var1.newConversation(UUID.fromString("7f54d463-02d1-48b4-844d-548bb45755c5"), "Test")
+        println(o)
     }
 }

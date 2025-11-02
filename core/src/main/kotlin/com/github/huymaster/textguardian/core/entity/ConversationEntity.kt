@@ -8,7 +8,8 @@ interface ConversationEntity : BaseEntity<ConversationEntity> {
     companion object : Entity.Factory<ConversationEntity>()
 
     var conversationId: UUID
-    var createdAt: Instant
     var name: String
     var creator: UUID
+    var createdAt: Instant
+    var lastUpdated: Instant
 }
