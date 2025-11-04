@@ -34,18 +34,19 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.huymaster.textguardian.android.viewmodel.LoginState
 import com.github.huymaster.textguardian.android.viewmodel.LoginViewModel
 import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(
-    model: LoginViewModel,
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
     onSwitchToRegister: () -> Unit = {},
     onLoginSuccess: () -> Unit
 ) {
+    val model: LoginViewModel = viewModel()
     val state by model.state.collectAsState()
     val scope = rememberCoroutineScope()
     LaunchedEffect(state) {

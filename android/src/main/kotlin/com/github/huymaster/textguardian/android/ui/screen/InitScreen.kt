@@ -11,13 +11,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.huymaster.textguardian.android.viewmodel.InitViewModel
 
 @Composable
 fun InitScreen(
-    model: InitViewModel,
     onServiceAvailable: (Boolean) -> Unit
 ) {
+    val model: InitViewModel = viewModel()
     val state by model.state.collectAsState()
     var message by remember { mutableStateOf("") }
     var retry by remember { mutableLongStateOf(0L) }

@@ -13,6 +13,7 @@ import com.github.huymaster.textguardian.server.data.repository.CredentialReposi
 import com.github.huymaster.textguardian.server.data.repository.RepositoryResult
 import com.github.huymaster.textguardian.server.data.repository.UserRepository
 import com.github.huymaster.textguardian.server.data.repository.UserTokenRepository
+import com.github.huymaster.textguardian.server.net.REFRESH_TOKEN_CLAIM
 import com.github.huymaster.textguardian.server.net.USER_ID_CLAIM
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -99,24 +100,28 @@ object AuthRoute : SubRoute() {
         call.respond(genTokenResult.data as AccessToken)
     }
 
+    suspend fun check(call: ApplicationCall) {
+        val payload = call.getClaim(USER_ID_CLAIM) { asString() }
+        call.respond(if (payload != null) HttpStatusCode.OK else HttpStatusCode.Unauthorized)
+    }
+
     suspend fun logout(call: ApplicationCall) {
         val token: UserTokenRepository by inject()
         val payload = call.getClaim(USER_ID_CLAIM) { asString() }
         if (payload == null) {
-            call.sendErrorResponse("Not allowed to revoke this token", status = HttpStatusCode.Unauthorized)
+            call.sendErrorResponse("Not allowed to execute this action", status = HttpStatusCode.Unauthorized)
             return
         }
-        val request = call.parameters["refreshToken"]?.decodeURLPart()
+        val request = call.getClaim(REFRESH_TOKEN_CLAIM) { asString() }
         if (request == null) {
-            call.sendErrorResponse("Invalid request. [refreshToken] required")
+            call.sendErrorResponse("Invalid request.")
             return
         }
-
         val revokeResult = token.revokeToken(request, UUID.fromString(payload))
         if (revokeResult !is RepositoryResult.Success<*>) {
             call.sendErrorResponse(revokeResult)
             return
         }
-        call.respondText("OK")
+        call.respond(HttpStatusCode.OK)
     }
 }

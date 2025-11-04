@@ -3,14 +3,13 @@ package com.github.huymaster.textguardian.android.viewmodel
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.ViewModel
-import com.github.huymaster.textguardian.android.data.repository.AuthResult
 import com.github.huymaster.textguardian.android.data.repository.AuthenticationRepository
+import com.github.huymaster.textguardian.android.data.type.RepositoryResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import org.koin.java.KoinJavaComponent.get
+import org.koin.core.component.inject
 
 
 data class RegisterState(
@@ -23,9 +22,8 @@ data class RegisterState(
     val isSuccess: Boolean = false
 )
 
-class RegisterViewModel(
-    private val repository: AuthenticationRepository = get(AuthenticationRepository::class.java)
-) : ViewModel() {
+class RegisterViewModel : BaseViewModel() {
+    private val repository: AuthenticationRepository by inject()
     private val _state = MutableStateFlow(RegisterState())
     val state: StateFlow<RegisterState> = _state.asStateFlow()
 
@@ -105,14 +103,15 @@ class RegisterViewModel(
     suspend fun register() {
         _state.update { it.copy(isLoading = true) }
         when (val result = repository.register(phone, password)) {
-            is AuthResult.Success -> {
+            is RepositoryResult.Success -> {
                 resetState()
                 _state.update { it.copy(isLoading = false, isSuccess = true, message = result.message) }
             }
 
-            is AuthResult.Error -> {
+            is RepositoryResult.Error ->
                 _state.update { it.copy(isLoading = false, isSuccess = false, message = result.message) }
-            }
+
+            else -> _state.update { it.copy(isLoading = false, isSuccess = false, message = "Unknown error") }
         }
     }
 }

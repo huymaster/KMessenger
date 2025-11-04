@@ -14,7 +14,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.lifecycleScope
 import com.github.huymaster.textguardian.android.ui.theme.KMessengerTheme
+import kotlinx.coroutines.cancel
 import org.koin.core.component.KoinComponent
 
 @ExperimentalMaterial3ExpressiveApi
@@ -35,10 +37,17 @@ abstract class BaseActivity : AppCompatActivity(), KoinComponent {
         setContent(savedInstanceState, persistentState)
     }
 
+    final override fun onDestroy() {
+        lifecycleScope.cancel()
+        onDestroyEx()
+        super.onDestroy()
+    }
+
     private fun setContent(
         savedInstanceState: Bundle? = null,
         persistentState: PersistableBundle? = null
     ) {
+        onCreateEx(savedInstanceState, persistentState)
         enableEdgeToEdge()
         setContent {
             KMessengerTheme {
@@ -46,6 +55,10 @@ abstract class BaseActivity : AppCompatActivity(), KoinComponent {
             }
         }
     }
+
+    open fun onCreateEx(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {}
+
+    open fun onDestroyEx() {}
 
     @Composable
     protected open fun Content(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {

@@ -21,11 +21,20 @@ interface APIVersion1Service {
     @GET("$PREFIX/auth/refresh")
     suspend fun refresh(@Query("refreshToken") refreshToken: String): Response<AccessToken>
 
+    @GET("$PREFIX/auth/check")
+    suspend fun check(@Header("Authorization") bearer: String): Response<Unit>
+
     @DELETE("$PREFIX/auth/logout")
     suspend fun logout(
         @Header("Authorization") bearer: String,
         @Query("refreshToken") refreshToken: String
     ): Response<Unit>
+
+    @GET("$PREFIX/users")
+    suspend fun findUsers(
+        @Query("username") username: String? = null,
+        @Query("phone") phone: String? = null
+    ): Response<List<BasicUserInfo>>
 
     @GET("$PREFIX/user")
     suspend fun getUserInfo(@Header("Authorization") bearer: String): Response<UserInfo>
@@ -35,4 +44,32 @@ interface APIVersion1Service {
         @Header("Authorization") bearer: String,
         @Body body: BasicUserInfo
     ): Response<List<String>>
+
+    @GET("$PREFIX/conversations")
+    suspend fun getConversations(@Header("Authorization") bearer: String): Response<List<ConversationInfo>>
+
+    @POST("$PREFIX/conversation")
+    suspend fun createConversation(
+        @Header("Authorization") bearer: String,
+        @Body body: CreateConversationRequest
+    ): Response<ConversationInfo>
+
+    @GET("$PREFIX/conversation/{id}")
+    suspend fun getConversation(
+        @Header("Authorization") bearer: String,
+        @Path("id") id: String
+    ): Response<ConversationInfo>
+
+    @PUT("$PREFIX/conversation/{id}")
+    suspend fun updateConversation(
+        @Header("Authorization") bearer: String,
+        @Path("id") id: String,
+        @Body body: CreateConversationRequest
+    ): Response<ConversationInfo>
+
+    @DELETE("$PREFIX/conversation/{id}")
+    suspend fun deleteConversation(
+        @Header("Authorization") bearer: String,
+        @Path("id") id: String
+    ): Response<Unit>
 }

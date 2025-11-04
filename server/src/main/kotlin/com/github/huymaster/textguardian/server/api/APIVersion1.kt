@@ -62,7 +62,10 @@ object APIVersion1 : BaseAPI(1) {
         post("/auth/register") { AuthRoute.register(call) }
         post("/auth/login") { AuthRoute.login(call) }
         get("/auth/refresh") { AuthRoute.refresh(call) }
-        protect { delete("/auth/logout") { AuthRoute.logout(call) } }
+        protect {
+            get("/auth/check") { AuthRoute.check(call) }
+            delete("/auth/logout") { AuthRoute.logout(call) }
+        }
     }
 
     private fun Route.userRoute() {
@@ -76,7 +79,10 @@ object APIVersion1 : BaseAPI(1) {
     private fun Route.conversationRoute() {
         protect {
             get("/conversations") { ConversationRoute.getConversations(call) }
+            get("/conversation/{conversationId}") { ConversationRoute.getConversation(call) }
             post("/conversation") { ConversationRoute.createConvertation(call) }
+            put("/conversation/{conversationId}") { ConversationRoute.renameConversation(call) }
+            delete("/conversation/{conversationId}") { ConversationRoute.deleteConversation(call) }
         }
     }
 }

@@ -10,6 +10,7 @@ tags:
   - name: basic
   - name: auth
   - name: user
+  - name: conversation
 components:
   securitySchemes:
     bearerAuth:
@@ -103,6 +104,26 @@ components:
           type: string
       required:
         - phoneNumber
+    ConversationInfo:
+      type: object
+      properties:
+        conversationId:
+          type: string
+        name:
+          type: string
+        creator:
+          type: string
+        createdAt:
+          type: number
+        lastUpdated:
+          type: number
+    CreateConversationRequest:
+      type: object
+      properties:
+        name:
+          type: string
+      required:
+        - name
 paths:
   /health:
     get:
@@ -211,6 +232,51 @@ paths:
           description: Server not available
       tags:
         - auth
+  /auth/check:
+    get:
+      summary: Check if token is valid
+      security:
+        - bearerAuth: [ ]
+      responses:
+        "200":
+          description: User is logged in
+        "401":
+          description: Unauthorized
+        "403":
+          description: Token expired or revoked
+        "429":
+          description: Too many requests
+        "500":
+          description: Failed to check user [Server error]
+        "502":
+          description: Server not available
+      tags:
+        - auth
+  /auth/logout:
+    delete:
+      summary: Logout current user
+      security:
+        - bearerAuth: [ ]
+      responses:
+        "200":
+          description: Logout success
+        "400":
+          description: Invalid token
+        "401":
+          description: Unauthorized
+        "403":
+          description: Refresh token expired or revoked
+        "404":
+          description: Refresh token not found
+        "429":
+          description: Too many requests
+        "500":
+          description: Failed to logout [Server error]
+        "502":
+          description: Server not available
+      tags:
+        - auth
+
   /users:
     get:
       summary: Find users by query
@@ -245,37 +311,6 @@ paths:
           description: Server not available
       tags:
         - user
-
-  /auth/logout:
-    delete:
-      summary: Revoke refresh token
-      parameters:
-        - name: refreshToken
-          in: query
-          required: true
-          schema:
-            type: string
-      security:
-        - bearerAuth: [ ]
-      responses:
-        "200":
-          description: Logout success
-        "400":
-          description: Missing required fields [refreshToken]. Or invalid format of refreshToken.
-        "401":
-          description: Unauthorized
-        "403":
-          description: Refresh token expired or revoked
-        "404":
-          description: Refresh token not found
-        "429":
-          description: Too many requests
-        "500":
-          description: Failed to logout [Server error]
-        "502":
-          description: Server not available
-      tags:
-        - auth
   /user:
     get:
       summary: Get current user info
@@ -330,3 +365,153 @@ paths:
           description: Server not available
       tags:
         - user
+  /conversations:
+    get:
+      summary: Get conversations
+      security:
+        - bearerAuth: [ ]
+      responses:
+        "200":
+          description: Conversations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ConversationInfo"
+        "204":
+          description: No conversations
+        "401":
+          description: Not allowed to retrieve conversations
+        "429":
+          description: Too many requests
+        "500":
+          description: Failed to get conversations [Server error]
+        "502":
+          description: Server not available
+      tags:
+        - conversation
+  /conversation:
+    post:
+      summary: Create conversation
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateConversationRequest"
+      responses:
+        "200":
+          description: Conversation created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConversationInfo"
+        "401":
+          description: Not allowed to create conversation
+        "429":
+          description: Too many requests
+        "500":
+          description: Failed to create conversation [Server error]
+        "502":
+          description: Server not available
+      tags:
+        - conversation
+  /conversation/{conversationId}:
+    get:
+      summary: Get conversation
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Conversation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConversationInfo"
+        "401":
+          description: Not allowed to retrieve conversation
+        "403":
+          description: Not conversation's participant
+        "404":
+          description: Conversation not found
+        "429":
+          description: Too many requests
+        "500":
+          description: Failed to get conversation [Server error]
+        "502":
+          description: Server not available
+      tags:
+        - conversation
+    put:
+      summary: Rename conversation
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateConversationRequest"
+      responses:
+        "200":
+          description: Conversation updated
+        "400":
+          description: Invalid conversation name
+        "401":
+          description: Not allowed to update conversation
+        "403":
+          description: Not owner of conversation
+        "404":
+          description: Conversation not found
+        "429":
+          description: Too many requests
+        "500":
+          description: Failed to update conversation [Server error]
+        "502":
+          description: Server not available
+      tags:
+        - conversation
+    delete:
+      summary: Delete conversation
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Conversation deleted
+        "400":
+          description: Invalid conversation id
+        "401":
+          description: Not allowed to delete conversation
+        "403":
+          description: Not owner of conversation
+        "404":
+          description: Conversation not found
+        "429":
+          description: Too many requests
+        "500":
+          description: Failed to delete conversation [Server error]
+        "502":
+          description: Server not available
+      tags:
+        - conversation

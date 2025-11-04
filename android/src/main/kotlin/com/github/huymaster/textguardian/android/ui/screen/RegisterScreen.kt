@@ -31,17 +31,18 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.huymaster.textguardian.android.viewmodel.RegisterState
 import com.github.huymaster.textguardian.android.viewmodel.RegisterViewModel
 import kotlinx.coroutines.launch
 
 @Composable
 fun RegisterScreen(
-    model: RegisterViewModel,
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope,
     onSwitchToLogin: () -> Unit = {}
 ) {
+    val model = viewModel<RegisterViewModel>()
     val state by model.state.collectAsState()
     val scope = rememberCoroutineScope()
     with(sharedTransitionScope) {

@@ -35,7 +35,7 @@ class ConversationRepository : BaseRepository<ConversationEntity, ConversationTa
         val participantRepository: ParticipantRepository by inject()
         val conversation = ConversationEntity()
         conversation.conversationId = UUID.randomUUID()
-        conversation.name = name
+        conversation.name = name.trim()
         conversation.createdAt = Instant.now()
         conversation.creator = userId
         return if (create(conversation) != null) {
@@ -49,7 +49,10 @@ class ConversationRepository : BaseRepository<ConversationEntity, ConversationTa
         val ownerResult = checkCreator(conversationId, userId)
         if (ownerResult is RepositoryResult.Error)
             return ownerResult
-        return if (update({ it.conversationId eq conversationId }) { it.name = name } != null)
+        return if (update({ it.conversationId eq conversationId }) {
+                it.name = name.trim()
+                it.lastUpdated = Instant.now()
+            } != null)
             RepositoryResult.Success(null)
         else
             RepositoryResult.Error("Failed to rename conversation", HttpStatusCode.InternalServerError)
