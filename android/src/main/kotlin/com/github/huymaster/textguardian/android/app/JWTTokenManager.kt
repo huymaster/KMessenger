@@ -30,12 +30,13 @@ class JWTTokenManager(context: Context) : KoinComponent {
     private fun getRefreshToken(): String? = preference.getString(refreshToken, null)
 
     fun saveRefreshToken(token: String) {
-        preference.edit { putString(refreshToken, token) }
+        preference.edit(commit = true) { putString(refreshToken, token) }
         ApplicationEvents().resetSessionExpired()
     }
 
     fun removeRefreshToken() {
-        preference.edit { remove(refreshToken) }
+        preference.edit(commit = true) { remove(refreshToken) }
+        ApplicationEvents().notifySessionExpired()
     }
 
     fun autoCheckToken(
@@ -75,7 +76,6 @@ class JWTTokenManager(context: Context) : KoinComponent {
             if (response.code() == 401 || response.code() == 403) {
                 lastToken = null
                 removeRefreshToken()
-                ApplicationEvents().notifySessionExpired()
             }
             throw IllegalStateException("Failed to get token. Error ${response.code()}")
         }

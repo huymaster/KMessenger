@@ -85,25 +85,6 @@ components:
       required:
         - userId
         - phoneNumber
-    BasicUserInfo:
-      type: object
-      properties:
-        phoneNumber:
-          type: string
-        username:
-          type: string
-        displayName:
-          type: string
-        lastSeen:
-          type: number
-        createdAt:
-          type: number
-        avatarUrl:
-          type: string
-        bio:
-          type: string
-      required:
-        - phoneNumber
     ConversationInfo:
       type: object
       properties:
@@ -124,6 +105,38 @@ components:
           type: string
       required:
         - name
+    ParticipantInfo:
+      type: object
+      properties:
+        conversationId:
+          type: string
+        userId:
+          type: string
+      required:
+        - conversationId
+        - userId
+    UserPublicKey:
+      type: object
+      properties:
+        userId:
+          type: string
+        key:
+          type: string
+      required:
+        - userId
+        - key
+    UserPublicKeys:
+      type: object
+      properties:
+        userId:
+          type: string
+        keys:
+          type: array
+          items:
+            type: string
+      required:
+        - userId
+        - keys
 paths:
   /health:
     get:
@@ -280,7 +293,7 @@ paths:
   /users:
     get:
       summary: Find users by query
-      description: Must provide at least one of username or phoneNumber. If both are provided, username will be used.
+      description: Must provide at least one of username or phoneNumber. Result will be set of users by username + set of users by phoneNumber.
       parameters:
         - name: username
           in: query
@@ -302,7 +315,9 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/BasicUserInfo"
+                  $ref: "#/components/schemas/UserInfo"
+        "404":
+          description: No users found
         "429":
           description: Too many requests
         "500":
@@ -313,9 +328,15 @@ paths:
         - user
   /user:
     get:
-      summary: Get current user info
+      summary: Get user info by given id or self if empty
       security:
         - bearerAuth: [ ]
+      parameters:
+        - name: userId
+          in: query
+          required: false
+          schema:
+            type: string
       responses:
         "200":
           description: User info
@@ -342,7 +363,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/BasicUserInfo"
+              $ref: "#/components/schemas/UserInfo"
       responses:
         "200":
           description: User info updated
@@ -361,6 +382,60 @@ paths:
           description: Too many requests
         "500":
           description: Failed to update user info [Server error]
+        "502":
+          description: Server not available
+      tags:
+        - user
+  /keys:
+    get:
+      summary: Get public key
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Public key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserPublicKeys"
+        "400":
+          description: Missing required fields [userId]. Or invalid format of userId.
+        "404":
+          description: User not found
+        "429":
+          description: Too many requests
+        "500":
+          description: Failed to get public key [Server error]
+        "502":
+          description: Server not available
+      tags:
+        - user
+  /key:
+    post:
+      summary: Add public key
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserPublicKey"
+      responses:
+        "200":
+          description: Public key added
+        "400":
+          description: Missing required fields [userId]. Or invalid format of userId.
+        "404":
+          description: User not found
+        "429":
+          description: Too many requests
+        "500":
+          description: Failed to add public key [Server error]
         "502":
           description: Server not available
       tags:
@@ -511,6 +586,99 @@ paths:
           description: Too many requests
         "500":
           description: Failed to delete conversation [Server error]
+        "502":
+          description: Server not available
+      tags:
+        - conversation
+  /conversation/{conversationId}/participants:
+    get:
+      summary: Get conversation participants
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Conversation participants
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ParticipantInfo"
+        "400":
+          description: Invalid conversation id
+        "401":
+          description: Not allowed to retrieve conversation participants
+        "403":
+          description: Not conversation's participant
+        "404":
+          description: Conversation not found
+        "429":
+          description: Too many requests
+        "500":
+          description: Failed to get conversation participants [Server error]
+        "502":
+          description: Server not available
+      tags:
+        - conversation
+  /participant:
+    post:
+      summary: Add participant to conversation
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ParticipantInfo"
+      responses:
+        "200":
+          description: Participant added
+        "400":
+          description: Invalid conversation id
+        "401":
+          description: Not allowed to add participant to conversation
+        "403":
+          description: Not conversation's participant
+        "404":
+          description: Conversation not found
+        "429":
+          description: Too many requests
+        "500":
+          description: Failed to add participant to conversation [Server error]
+        "502":
+          description: Server not available
+      tags:
+        - conversation
+    delete:
+      summary: Remove participant from conversation
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ParticipantInfo"
+      responses:
+        "200":
+          description: Participant removed
+        "400":
+          description: Invalid conversation id
+        "401":
+          description: Not allowed to remove participant from conversation
+        "403":
+          description: Not conversation's participant
+        "404":
+          description: Conversation not found
+        "429":
+          description: Too many requests
+        "500":
+          description: Failed to remove participant from conversation [Server error]
         "502":
           description: Server not available
       tags:

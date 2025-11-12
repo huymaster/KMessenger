@@ -4,6 +4,9 @@ import com.github.huymaster.textguardian.android.app.JWTTokenManager
 import com.github.huymaster.textguardian.android.data.type.RepositoryResult
 import com.github.huymaster.textguardian.core.api.APIVersion1Service
 import com.github.huymaster.textguardian.core.api.type.ConversationInfo
+import com.github.huymaster.textguardian.core.api.type.CreateConversationRequest
+import com.github.huymaster.textguardian.core.api.type.ParticipantInfo
+import java.util.*
 
 class ConversationRepository(
     private val service: APIVersion1Service,
@@ -19,6 +22,114 @@ class ConversationRepository(
             val response = service.getConversations(token)
             if (response.isSuccessful) {
                 RepositoryResult.Success(response.body()!!)
+            } else {
+                RepositoryResult.Error(message = response.errorBody()?.string())
+            }
+        } catch (e: Exception) {
+            RepositoryResult.Error(message = e.message, throwable = e)
+        }
+    }
+
+    suspend fun getConversation(conversationId: String): RepositoryResult<ConversationInfo> {
+        return try {
+            val token = runCatching {
+                tokenManager.getAccessToken()!!
+            }.onFailure {
+                return RepositoryResult.Error()
+            }.getOrThrow()
+            val response = service.getConversation(token, conversationId)
+            if (response.isSuccessful) {
+                RepositoryResult.Success(response.body())
+            } else {
+                RepositoryResult.Error(message = response.errorBody()?.string())
+            }
+        } catch (e: Exception) {
+            RepositoryResult.Error(message = e.message, throwable = e)
+        }
+    }
+
+    suspend fun createConversation(name: String): RepositoryResult<UUID> {
+        return try {
+            val token = runCatching {
+                tokenManager.getAccessToken()!!
+            }.onFailure {
+                return RepositoryResult.Error(throwable = it)
+            }.getOrThrow()
+            val response = service.createConversation(token, CreateConversationRequest(name))
+            if (response.isSuccessful) {
+                RepositoryResult.Success(response.body())
+            } else {
+                RepositoryResult.Error(message = response.errorBody()?.string())
+            }
+        } catch (e: Exception) {
+            RepositoryResult.Error(message = e.message, throwable = e)
+        }
+    }
+
+    suspend fun getParticipants(conversationId: String): RepositoryResult<List<ParticipantInfo>> {
+        return try {
+            val token = runCatching {
+                tokenManager.getAccessToken()!!
+            }.onFailure {
+                return RepositoryResult.Error()
+            }.getOrThrow()
+            val response = service.getParticipants(token, conversationId)
+            if (response.isSuccessful) {
+                RepositoryResult.Success(response.body()!!)
+            } else {
+                RepositoryResult.Error(message = response.errorBody()?.string())
+            }
+        } catch (e: Exception) {
+            RepositoryResult.Error(message = e.message, throwable = e)
+        }
+    }
+
+    suspend fun addParticipant(conversationId: String, participantId: String): RepositoryResult<Nothing> {
+        return try {
+            val token = runCatching {
+                tokenManager.getAccessToken()!!
+            }.onFailure {
+                return RepositoryResult.Error()
+            }.getOrThrow()
+            val response = service.addParticipant(token, ParticipantInfo(conversationId, participantId))
+            if (response.isSuccessful) {
+                RepositoryResult.Success()
+            } else {
+                RepositoryResult.Error(message = response.errorBody()?.string())
+            }
+        } catch (e: Exception) {
+            RepositoryResult.Error(message = e.message, throwable = e)
+        }
+    }
+
+    suspend fun removeParticipant(conversationId: String, participantId: String): RepositoryResult<Nothing> {
+        return try {
+            val token = runCatching {
+                tokenManager.getAccessToken()!!
+            }.onFailure {
+                return RepositoryResult.Error()
+            }.getOrThrow()
+            val response = service.removeParticipant(token, ParticipantInfo(conversationId, participantId))
+            if (response.isSuccessful) {
+                RepositoryResult.Success()
+            } else {
+                RepositoryResult.Error(message = response.errorBody()?.string())
+            }
+        } catch (e: Exception) {
+            RepositoryResult.Error(message = e.message, throwable = e)
+        }
+    }
+
+    suspend fun deleteConversation(conversationId: String): RepositoryResult<Nothing> {
+        return try {
+            val token = runCatching {
+                tokenManager.getAccessToken()!!
+            }.onFailure {
+                return RepositoryResult.Error()
+            }.getOrThrow()
+            val response = service.deleteConversation(token, conversationId)
+            if (response.isSuccessful) {
+                RepositoryResult.Success()
             } else {
                 RepositoryResult.Error(message = response.errorBody()?.string())
             }

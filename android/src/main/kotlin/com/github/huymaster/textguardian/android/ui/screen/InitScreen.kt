@@ -18,7 +18,7 @@ import com.github.huymaster.textguardian.android.viewmodel.InitViewModel
 fun InitScreen(
     onServiceAvailable: (Boolean) -> Unit
 ) {
-    val model: InitViewModel = viewModel()
+    val model = viewModel<InitViewModel>()
     val state by model.state.collectAsState()
     var message by remember { mutableStateOf("") }
     var retry by remember { mutableLongStateOf(0L) }

@@ -18,6 +18,7 @@ object APIVersion1 : BaseAPI(1) {
         authRoute()
         userRoute()
         conversationRoute()
+        chatRoute()
     }
 
     override suspend fun RoutingContext.swaggerProvider() {
@@ -70,8 +71,9 @@ object APIVersion1 : BaseAPI(1) {
 
     private fun Route.userRoute() {
         get("/users") { UserRoute.getUsers(call) }
+        get("/keys") { UserRoute.getPublicKeys(call) }
         protect {
-            get("/user") { UserRoute.getMe(call) }
+            get("/user") { UserRoute.getUser(call) }
             put("/user") { UserRoute.updateInfo(call) }
         }
     }
@@ -83,6 +85,13 @@ object APIVersion1 : BaseAPI(1) {
             post("/conversation") { ConversationRoute.createConvertation(call) }
             put("/conversation/{conversationId}") { ConversationRoute.renameConversation(call) }
             delete("/conversation/{conversationId}") { ConversationRoute.deleteConversation(call) }
+            get("/conversation/{conversationId}/participants") { ConversationRoute.getParticipants(call) }
+            post("/participant") { ConversationRoute.addParticipant(call) }
+            delete("/participant") { ConversationRoute.removeParticipant(call) }
         }
+    }
+
+    private fun Route.chatRoute() {
+
     }
 }

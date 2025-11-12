@@ -29,12 +29,14 @@ import org.koin.core.component.KoinComponent
 abstract class BaseActivity : AppCompatActivity(), KoinComponent {
     final override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent(savedInstanceState)
+        setContent(savedInstanceState, null)
+        onCreateEx(savedInstanceState, null)
     }
 
     final override fun onCreate(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
         super.onCreate(savedInstanceState, persistentState)
         setContent(savedInstanceState, persistentState)
+        onCreateEx(savedInstanceState, persistentState)
     }
 
     final override fun onDestroy() {
@@ -47,7 +49,6 @@ abstract class BaseActivity : AppCompatActivity(), KoinComponent {
         savedInstanceState: Bundle? = null,
         persistentState: PersistableBundle? = null
     ) {
-        onCreateEx(savedInstanceState, persistentState)
         enableEdgeToEdge()
         setContent {
             KMessengerTheme {

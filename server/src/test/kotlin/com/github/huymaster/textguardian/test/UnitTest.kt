@@ -27,6 +27,5 @@ class UnitTest : KoinTest {
 
     @Test
     suspend fun test() {
-        
     }
 }

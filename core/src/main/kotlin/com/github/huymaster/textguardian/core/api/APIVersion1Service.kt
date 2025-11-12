@@ -3,6 +3,7 @@ package com.github.huymaster.textguardian.core.api
 import com.github.huymaster.textguardian.core.api.type.*
 import retrofit2.Response
 import retrofit2.http.*
+import java.util.*
 
 interface APIVersion1Service {
     companion object {
@@ -26,23 +27,25 @@ interface APIVersion1Service {
 
     @DELETE("$PREFIX/auth/logout")
     suspend fun logout(
-        @Header("Authorization") bearer: String,
-        @Query("refreshToken") refreshToken: String
+        @Header("Authorization") bearer: String
     ): Response<Unit>
 
     @GET("$PREFIX/users")
     suspend fun findUsers(
         @Query("username") username: String? = null,
-        @Query("phone") phone: String? = null
-    ): Response<List<BasicUserInfo>>
+        @Query("phoneNumber") phone: String? = null
+    ): Response<List<UserInfo>>
 
     @GET("$PREFIX/user")
-    suspend fun getUserInfo(@Header("Authorization") bearer: String): Response<UserInfo>
+    suspend fun getUserInfo(
+        @Header("Authorization") bearer: String,
+        @Query("userId") userId: String? = null
+    ): Response<UserInfo>
 
     @PUT("$PREFIX/user")
     suspend fun updateUserInfo(
         @Header("Authorization") bearer: String,
-        @Body body: BasicUserInfo
+        @Body body: UserInfo
     ): Response<List<String>>
 
     @GET("$PREFIX/conversations")
@@ -52,7 +55,7 @@ interface APIVersion1Service {
     suspend fun createConversation(
         @Header("Authorization") bearer: String,
         @Body body: CreateConversationRequest
-    ): Response<ConversationInfo>
+    ): Response<UUID>
 
     @GET("$PREFIX/conversation/{id}")
     suspend fun getConversation(
@@ -71,5 +74,23 @@ interface APIVersion1Service {
     suspend fun deleteConversation(
         @Header("Authorization") bearer: String,
         @Path("id") id: String
+    ): Response<Unit>
+
+    @GET("$PREFIX/conversation/{id}/participants")
+    suspend fun getParticipants(
+        @Header("Authorization") bearer: String,
+        @Path("id") id: String
+    ): Response<List<ParticipantInfo>>
+
+    @POST("$PREFIX/participant")
+    suspend fun addParticipant(
+        @Header("Authorization") bearer: String,
+        @Body body: ParticipantInfo
+    ): Response<Unit>
+
+    @DELETE("$PREFIX/participant")
+    suspend fun removeParticipant(
+        @Header("Authorization") bearer: String,
+        @Body body: ParticipantInfo
     ): Response<Unit>
 }

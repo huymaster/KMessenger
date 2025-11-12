@@ -40,3 +40,78 @@
 -if interface * { @retrofit2.http.* public *** *(...); }
 -keep,allowoptimization,allowshrinking,allowobfuscation class <3>
 -keep,allowoptimization,allowshrinking,allowobfuscation class retrofit2.Response
+-keep class com.firebase.** { *; }
+-keep class org.apache.** { *; }
+-keepnames class com.fasterxml.jackson.** { *; }
+-keepnames class javax.servlet.** { *; }
+-keepnames class org.ietf.jgss.** { *; }
+-dontwarn org.w3c.dom.**
+-dontwarn org.joda.time.**
+-dontwarn org.shaded.apache.**
+-dontwarn org.ietf.jgss.**
+
+-keepattributes *Annotation*
+
+-keep class kotlin.Metadata { *; }
+-keep,allowobfuscation,allowshrinking class **.*$kotlin_metadata { *; }
+
+-keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}
+-keepnames class kotlinx.coroutines.flow.**
+-keepnames class kotlinx.coroutines.channels.**
+
+-keep class androidx.compose.ui.** { *; }
+-keep class androidx.compose.runtime.** { *; }
+-dontwarn androidx.compose.**
+-keepclassmembers class * {
+    @androidx.compose.runtime.Composable <methods>;
+}
+-keepclassmembers class * {
+    @androidx.compose.runtime.Composable <fields>;
+}
+-keepclassmembers @androidx.compose.runtime.Stable class * { *; }
+
+-keep class androidx.biometric.BiometricPrompt$CryptoObject { *; }
+-keep class androidx.biometric.** { *; }
+
+-keep class com.github.huymaster.textguardian.android.service.MessageService { *; }
+-keep class com.github.huymaster.textguardian.android.data.repository.** { *; }
+
+-keep class org.koin.core.registry.ScopeRegistry { *; }
+-keep class org.koin.core.instance.InstanceFactory { *; }
+-keep class org.koin.core.module.** { *; }
+-keep class org.koin.core.scope.** { *; }
+-keep class org.koin.core.context.** { *; }
+
+-keep class * extends org.koin.core.module.Module
+-keep class * implements org.koin.core.module.Module
+
+-keep class org.koin.core.qualifier.StringQualifier { *; }
+
+-keep,includedescriptorclasses class * extends androidx.lifecycle.ViewModel {
+    <init>(...);
+}
+
+-dontwarn org.ktorm.entity.Entity$Factory
+-dontwarn org.ktorm.entity.Entity
+-dontwarn org.ktorm.schema.SqlType
+-dontwarn javax.sql.rowset.serial.SQLInputImpl
+-dontwarn javax.sql.rowset.serial.SerialArray
+-dontwarn javax.sql.rowset.serial.SerialBlob
+-dontwarn javax.sql.rowset.serial.SerialClob
+-dontwarn javax.sql.rowset.serial.SerialRef
+-dontwarn javax.sql.rowset.serial.SerialStruct
+-dontwarn org.springframework.dao.DataAccessException
+-dontwarn org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy
+-dontwarn org.springframework.jdbc.support.SQLErrorCodeSQLExceptionTranslator
+
+-keepnames class com.fasterxml.jackson.databind.** { *; }
+-keep class com.fasterxml.jackson.** { *; }
+-dontwarn com.fasterxml.jackson.databind.**
+
+-keep class * {
+    @com.fasterxml.jackson.annotation.JsonCreator *;
+    @com.fasterxml.jackson.annotation.JsonProperty *;
+}
+
+-keep class org.bouncycastle.** { *; }
+-dontwarn org.bouncycastle.**

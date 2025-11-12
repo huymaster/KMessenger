@@ -22,13 +22,10 @@ class ConversationRepository : BaseRepository<ConversationEntity, ConversationTa
     }
 
     suspend fun getConversationById(userId: UUID, conversationId: UUID): RepositoryResult {
-        val ownerResult = checkCreator(conversationId, userId)
-        if (ownerResult is RepositoryResult.Error)
-            return ownerResult
         val conversation = find { it.conversationId eq conversationId }
         if (conversation == null)
             return RepositoryResult.Error("Conversation not found", HttpStatusCode.NotFound)
-        return RepositoryResult.Success(conversation)
+        return RepositoryResult.Success(ConversationInfo(conversation))
     }
 
     suspend fun newConversation(userId: UUID, name: String): RepositoryResult {
@@ -60,9 +57,10 @@ class ConversationRepository : BaseRepository<ConversationEntity, ConversationTa
 
     suspend fun deleteConversation(userId: UUID, conversationId: UUID): RepositoryResult {
         val ownerResult = checkCreator(conversationId, userId)
-        if (ownerResult is RepositoryResult.Error)
-            return ownerResult
-        return if (delete { it.conversationId eq conversationId } > 0)
+        if (ownerResult is RepositoryResult.Error) {
+            val participantRepository: ParticipantRepository by inject()
+            return participantRepository.removeParticipant(conversationId, userId)
+        } else return if (delete { it.conversationId eq conversationId } > 0)
             RepositoryResult.Success(null)
         else
             RepositoryResult.Error("Failed to delete conversation", HttpStatusCode.InternalServerError)

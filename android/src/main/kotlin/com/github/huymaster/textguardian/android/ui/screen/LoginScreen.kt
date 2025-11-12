@@ -46,7 +46,7 @@ fun LoginScreen(
     onSwitchToRegister: () -> Unit = {},
     onLoginSuccess: () -> Unit
 ) {
-    val model: LoginViewModel = viewModel()
+    val model = viewModel<LoginViewModel>()
     val state by model.state.collectAsState()
     val scope = rememberCoroutineScope()
     LaunchedEffect(state) {

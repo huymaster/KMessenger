@@ -1,6 +1,5 @@
 package com.github.huymaster.textguardian.core.security
 
-import com.github.huymaster.textguardian.core.api.type.UserPublicKey
 import com.github.huymaster.textguardian.core.utils.KEY_PAIR_ALGORITHM
 import java.security.KeyFactory
 import java.security.PrivateKey
@@ -18,9 +17,6 @@ object KeyReconstruct {
 
     fun reconstructPublicKey(bytes: Array<Byte>): PublicKey =
         reconstructPublicKey(bytes.toByteArray())
-
-    fun reconstructPublicKey(publicKey: UserPublicKey) =
-        reconstructPublicKey(publicKey.key)
 
     fun reconstructPrivateKey(bytes: ByteArray): PrivateKey {
         val specs = PKCS8EncodedKeySpec(bytes)

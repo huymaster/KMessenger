@@ -102,7 +102,6 @@ dependencies {
     implementation(project(":core")) {
         isTransitive = false
     }
-    implementation(libs.firebase.appdistribution.gradle)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

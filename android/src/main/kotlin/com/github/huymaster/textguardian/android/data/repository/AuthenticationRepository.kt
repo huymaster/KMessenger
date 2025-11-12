@@ -11,11 +11,6 @@ import com.github.huymaster.textguardian.core.api.type.RegisterRequest
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 
-sealed class AuthResult {
-    data class Success(val message: String) : AuthResult()
-    data class Error(val message: String) : AuthResult()
-}
-
 class AuthenticationRepository(
     private val service: APIVersion1Service,
     private val tokenManager: JWTTokenManager
@@ -69,5 +64,10 @@ class AuthenticationRepository(
         } catch (e: Exception) {
             RepositoryResult.Error(message = "Register failed: Can't connect to server [${e.javaClass.simpleName}]")
         }
+    }
+
+    suspend fun logout(): RepositoryResult<Nothing> {
+        tokenManager.getAccessToken()?.let { service.logout(it) }
+        return RepositoryResult.EMPTY
     }
 }

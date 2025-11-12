@@ -9,6 +9,6 @@ data class Message(
     @get:JsonProperty("content") val content: ByteArray,
     @get:JsonProperty("senderId") val senderId: UUID,
     @get:JsonProperty("sendAt") val sendAt: Instant,
-    @get:JsonProperty("sessionKeys") val sessionKeys: Array<ByteArray>,
+    @get:JsonProperty("sessionKeys") val sessionKeys: Collection<String>,
     @get:JsonProperty("replyTo") val replyTo: UUID?
 )

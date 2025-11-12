@@ -1,12 +1,13 @@
 package com.github.huymaster.textguardian.server.api.v1
 
-import com.github.huymaster.textguardian.core.api.type.BasicUserInfo
 import com.github.huymaster.textguardian.core.api.type.UserInfo
+import com.github.huymaster.textguardian.core.api.type.UserPublicKeys
 import com.github.huymaster.textguardian.core.entity.UserEntity
 import com.github.huymaster.textguardian.server.api.APIVersion1.getClaim
 import com.github.huymaster.textguardian.server.api.APIVersion1.receiveNullableNoThrow
 import com.github.huymaster.textguardian.server.api.APIVersion1.sendErrorResponse
 import com.github.huymaster.textguardian.server.api.SubRoute
+import com.github.huymaster.textguardian.server.data.repository.PublicKeyRepository
 import com.github.huymaster.textguardian.server.data.repository.RepositoryResult
 import com.github.huymaster.textguardian.server.data.repository.UserRepository
 import com.github.huymaster.textguardian.server.net.USER_ID_CLAIM
@@ -19,12 +20,17 @@ import org.ktorm.dsl.like
 import java.util.*
 
 object UserRoute : SubRoute() {
-    suspend fun getMe(call: ApplicationCall) {
+    suspend fun getUser(call: ApplicationCall) {
         val user: UserRepository by inject()
         val payload = call.getClaim(USER_ID_CLAIM) { asString() }
-        val rr = user.getUserByUserId(payload)
-        if ((payload == null) || (rr is RepositoryResult.Error) || ((rr as RepositoryResult.Success<*>).data !is UserEntity)) {
-            call.sendErrorResponse("Not allowed to retrieve user info", status = HttpStatusCode.Unauthorized)
+        val userId = runCatching { call.parameters["userId"].also { UUID.fromString(it) } }
+            .onFailure { e ->
+                if (payload == null) call.sendErrorResponse("Invalid user id")
+            }
+            .getOrNull()
+        val rr = user.getUserByUserId(userId ?: payload)
+        if ((rr is RepositoryResult.Error) || ((rr as RepositoryResult.Success<*>).data !is UserEntity)) {
+            call.sendErrorResponse(rr)
             return
         }
         call.respond(UserInfo(rr.data as UserEntity))
@@ -38,7 +44,7 @@ object UserRoute : SubRoute() {
             call.sendErrorResponse("Invalid user id")
             return
         }
-        val request = call.receiveNullableNoThrow<BasicUserInfo>()
+        val request = call.receiveNullableNoThrow<UserInfo>()
         if (request == null) {
             call.sendErrorResponse("Invalid request.")
             return
@@ -70,40 +76,49 @@ object UserRoute : SubRoute() {
     }
 
     suspend fun getUsers(call: ApplicationCall) {
-        if (call.parameters.contains("username"))
-            getUserByUsername(call, call.parameters["username"]!!)
-        else if (call.parameters.contains("phoneNumber"))
-            getUserByPhoneNumber(call, call.parameters["phoneNumber"]!!)
+        val username = getUserByUsername(call.parameters["username"])
+        val phone = getUserByPhoneNumber(call.parameters["phoneNumber"])
+        val list = (username + phone).toSet().toList()
+        if (list.isEmpty())
+            call.respond(HttpStatusCode.NotFound)
         else
-            call.sendErrorResponse("Invalid request. Must have one of [username, phoneNumber] parameters")
+            call.respond(list)
     }
 
-    private suspend fun getUserByUsername(call: ApplicationCall, username: String) {
+    private suspend fun getUserByUsername(username: String?): List<UserInfo> {
         val user: UserRepository by inject()
+        username ?: return emptyList()
         val normalizeUsername = username.trimIndent().lowercase()
-        if (normalizeUsername.isBlank()) {
-            call.sendErrorResponse("Invalid username")
-            return
-        }
+        if (normalizeUsername.isBlank())
+            return emptyList()
         val e = user.findAll { it.username like "${normalizeUsername}%" }
-        if (e.isEmpty()) {
-            call.sendErrorResponse("No user found", status = HttpStatusCode.NotFound)
-            return
-        }
-        call.respond(e.map { BasicUserInfo(it, true) })
+        return e.map { UserInfo(it) }.take(20)
     }
 
-    private suspend fun getUserByPhoneNumber(call: ApplicationCall, phoneNumber: String) {
+    private suspend fun getUserByPhoneNumber(phoneNumber: String?): List<UserInfo> {
         val user: UserRepository by inject()
-        if (phoneNumber.isBlank()) {
-            call.sendErrorResponse("Invalid phone number")
-            return
-        }
+        phoneNumber ?: return emptyList()
+        if (phoneNumber.isBlank()) return emptyList()
+
         val e = user.findAll { it.phoneNumber eq phoneNumber }
-        if (e.isEmpty()) {
-            call.sendErrorResponse("No user found", status = HttpStatusCode.NotFound)
+        if (e.isEmpty()) return emptyList()
+
+        return e.map { UserInfo(it) }.take(20)
+    }
+
+    suspend fun getPublicKeys(call: ApplicationCall) {
+        val publicKey: PublicKeyRepository by inject()
+        val userId = runCatching { call.parameters["userId"] }.getOrNull()
+        if (userId == null) {
+            call.sendErrorResponse("Invalid user id")
             return
         }
-        call.respond(e.map { BasicUserInfo(it) })
+        val rr = publicKey.getPublicKeys(UUID.fromString(userId))
+        if ((rr is RepositoryResult.Error) || ((rr as RepositoryResult.Success<*>).data !is UserPublicKeys)) {
+            call.sendErrorResponse(rr)
+            return
+        }
+        call.respond(rr.data as UserPublicKeys)
     }
+
 }

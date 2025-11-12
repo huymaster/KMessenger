@@ -5,11 +5,6 @@ import com.github.huymaster.textguardian.android.data.type.RepositoryResult
 import com.github.huymaster.textguardian.core.api.APIVersion1Service
 import kotlinx.coroutines.CancellationException
 
-sealed class ServiceHealth {
-    object Healthy : ServiceHealth()
-    data class Unhealthy(val message: String) : ServiceHealth()
-}
-
 class GenericRepository(
     private val service: APIVersion1Service
 ) {

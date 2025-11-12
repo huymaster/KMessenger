@@ -10,6 +10,7 @@ import org.bouncycastle.pqc.jcajce.spec.KyberParameterSpec
 import org.koin.dsl.module
 import java.security.KeyPair
 import java.security.KeyPairGenerator
+import java.util.*
 
 object SharedModule {
     init {
@@ -27,5 +28,9 @@ object SharedModule {
     }
     val api = module {
         factory { createService(APIVersion1Service::class) }
+    }
+    val utils = module {
+        single { Base64.getEncoder() }
+        single { Base64.getDecoder() }
     }
 }
