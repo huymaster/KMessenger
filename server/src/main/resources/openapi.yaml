@@ -123,7 +123,6 @@ components:
         key:
           type: string
       required:
-        - userId
         - key
     UserPublicKeys:
       type: object

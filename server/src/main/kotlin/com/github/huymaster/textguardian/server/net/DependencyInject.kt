@@ -8,7 +8,7 @@ import org.koin.ktor.plugin.Koin
 
 fun Application.configureDependencyInject() {
     install(Koin) {
-        modules(SharedModule.objectMapper, SharedModule.security)
+        modules(SharedModule.objectMapper, SharedModule.security, SharedModule.utils)
         modules(Module.database, Module.utils)
     }
 }

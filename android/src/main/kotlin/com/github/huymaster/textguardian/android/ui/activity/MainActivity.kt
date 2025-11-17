@@ -16,10 +16,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.github.huymaster.textguardian.android.app.CipherManager
 import com.github.huymaster.textguardian.android.ui.component.QuickThemeButton
 import com.github.huymaster.textguardian.android.ui.screen.InitScreen
 import com.github.huymaster.textguardian.android.ui.screen.LoginScreen
 import com.github.huymaster.textguardian.android.ui.screen.RegisterScreen
+import org.koin.android.ext.android.get
 
 class MainActivity : BaseActivity() {
     @Composable
@@ -41,6 +43,10 @@ class MainActivity : BaseActivity() {
                 }
             }
         }
+    }
+
+    override fun onCreateEx(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
+        println(get<CipherManager>())
     }
 
     private enum class AuthenticationScreen(val tabName: String) {

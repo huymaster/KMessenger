@@ -81,7 +81,7 @@ class DatabasePicker {
         fastest.database
     }
 
-    fun pickFastestAsync() = runBlocking { pickFastest() }
+    fun pickFastestSync() = runBlocking { pickFastest() }
 
     private fun useLogger(block: Logger.() -> Unit) =
         Thread { logger.block() }.apply { name = "DatabasePicker" }.start()

@@ -4,6 +4,7 @@ package com.github.huymaster.textguardian.android.ui.screen
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -17,12 +18,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.github.huymaster.textguardian.android.ui.utils.SharedTransitionBundle
-import com.github.huymaster.textguardian.android.ui.utils.with
 import com.github.huymaster.textguardian.android.viewmodel.NewChatState
 import com.github.huymaster.textguardian.android.viewmodel.NewChatViewModel
 import com.github.huymaster.textguardian.core.api.type.UserInfo
@@ -38,7 +37,6 @@ fun NewChatScreen(
     val model = viewModel<NewChatViewModel>()
     val state by model.state.collectAsState()
 
-
     NewChatScreenContent(
         transitionBundle,
         navController,
@@ -48,29 +46,6 @@ fun NewChatScreen(
         { scope.launch { model.deselectUser(it) } },
         { scope.launch { model.createConversation(it) { navController?.popBackStack() } } }
     )
-}
-
-
-@Preview(showSystemUi = true, showBackground = true)
-@Composable
-private fun NewChatScreenPreview() {
-    Scaffold {
-        Surface(modifier = Modifier.padding(it)) {
-            SharedTransitionLayout {
-                AnimatedContent(Unit) {
-                    NewChatScreenContent(
-                        transitionBundle = this@SharedTransitionLayout with this,
-                        navController = null,
-                        state = NewChatState(),
-                        onUserSearch = {},
-                        userSelect = {},
-                        userDeselect = {},
-                        createConversation = {}
-                    )
-                }
-            }
-        }
-    }
 }
 
 @Composable
@@ -102,7 +77,7 @@ private fun NewChatScreenContent(
                 ActionBar(
                     modifier = Modifier.padding(horizontal = 8.dp),
                     onAction = createConversation,
-                    enabled = state.selectedUsers.isNotEmpty() && !state.isLoading
+                    enabled = !state.isLoading
                 )
                 SelectedUsers(
                     modifier = Modifier
@@ -154,91 +129,98 @@ private fun UserSearch(
         delay(500)
         onUserSearch(text)
     }
-    Column(
+    Box(
         modifier = modifier.fillMaxWidth()
     ) {
         SharedTransitionLayout {
             AnimatedContent(expanded) { expand ->
-                if (expand)
-                    OutlinedTextField(
-                        modifier = Modifier
-                            .padding(horizontal = 8.dp)
+                if (!expand)
+                    Box(
+                        modifier = modifier
                             .sharedBounds(
                                 rememberSharedContentState("box"),
                                 this,
                                 resizeMode = SharedTransitionScope.ResizeMode.RemeasureToBounds
                             )
-                            .sharedElement(rememberSharedContentState("box_e"), this)
-                            .fillMaxWidth(),
-                        value = text,
-                        onValueChange = { text = it.trim() },
-                        maxLines = 1,
-                        singleLine = true,
-                        label = { Text("Search user(username or phone)", maxLines = 1) },
-                        trailingIcon = {
-                            if (state.isSearching)
-                                CircularProgressIndicator(modifier = Modifier.padding(4.dp))
-                            else if (text.isNotBlank())
-                                IconButton(onClick = { text = "" }) { Icon(Icons.Default.Clear, null) }
-                            else
-                                Icon(Icons.Default.Search, null)
-                        },
-                        leadingIcon = {
-                            IconButton(
-                                onClick = { expanded = false }
-                            ) {
-                                Icon(
-                                    modifier = Modifier
-                                        .size(24.dp)
-                                        .sharedElement(rememberSharedContentState("icon"), this),
-                                    imageVector = Icons.Default.PersonAdd,
-                                    contentDescription = null
-                                )
-                            }
-                        }
-                    )
-                else
-                    Button(
-                        modifier = Modifier
-                            .padding(horizontal = 8.dp)
-                            .sharedBounds(
-                                rememberSharedContentState("box"),
-                                this,
-                                resizeMode = SharedTransitionScope.ResizeMode.RemeasureToBounds
-                            )
-                            .sharedElement(rememberSharedContentState("box_e"), this),
-                        onClick = { expanded = true }
                     ) {
-                        Icon(
+                        Button(
                             modifier = Modifier
-                                .size(24.dp)
-                                .sharedElement(rememberSharedContentState("icon"), this@AnimatedContent),
-                            imageVector = Icons.Default.PersonAdd,
-                            contentDescription = null
+                                .padding(horizontal = 8.dp),
+                            onClick = { expanded = true }
+                        ) {
+                            Icon(
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .sharedElement(rememberSharedContentState("icon"), this@AnimatedContent),
+                                imageVector = Icons.Default.PersonAdd,
+                                contentDescription = null
+                            )
+                            Spacer(Modifier.size(8.dp))
+                            Text("Add user")
+                        }
+                    }
+                else
+                    Column(
+                        modifier = modifier
+                            .sharedBounds(
+                                rememberSharedContentState("box"),
+                                this,
+                                resizeMode = SharedTransitionScope.ResizeMode.RemeasureToBounds
+                            )
+                            .fillMaxWidth()
+                    ) {
+                        OutlinedTextField(
+                            modifier = Modifier
+                                .padding(horizontal = 8.dp)
+                                .fillMaxWidth(),
+                            value = text,
+                            readOnly = !enabled,
+                            onValueChange = { text = it.trim() },
+                            maxLines = 1,
+                            singleLine = true,
+                            label = { Text("Search user(username or phone)", maxLines = 1) },
+                            trailingIcon = {
+                                if (state.isSearching)
+                                    CircularProgressIndicator(modifier = Modifier.padding(4.dp))
+                                else if (text.isNotBlank())
+                                    IconButton(onClick = { text = "" }) { Icon(Icons.Default.Clear, null) }
+                                else
+                                    Icon(Icons.Default.Search, null)
+                            },
+                            leadingIcon = {
+                                IconButton(
+                                    onClick = { expanded = false }
+                                ) {
+                                    Icon(
+                                        modifier = Modifier
+                                            .size(24.dp),
+                                        imageVector = Icons.Default.PersonAdd,
+                                        contentDescription = null
+                                    )
+                                }
+                            }
                         )
-                        Spacer(Modifier.size(8.dp))
-                        Text("Add user")
+                        Spacer(Modifier.size(12.dp))
+                        if (state.searchUsers.isNotEmpty())
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f)
+                            ) {
+                                items(state.searchUsers) { user -> SearchUserItem(user, userSelect, enabled) }
+                            }
+                        else
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text("No users found")
+                            }
                     }
             }
         }
-        Spacer(Modifier.size(12.dp))
-        if (state.searchUsers.isNotEmpty())
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-            ) {
-                items(state.searchUsers) { user -> SearchUserItem(user, userSelect, enabled) }
-            }
-        else
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("No users found")
-            }
     }
 }
 
@@ -277,12 +259,14 @@ private fun ActionBar(
             value = text,
             onValueChange = { text = it.replace("\n", " ").replace(Regex("\\s+"), " ") },
             maxLines = 1,
+            readOnly = !enabled,
             singleLine = true,
             label = { Text("Chat name") },
             trailingIcon = {
                 IconButton(
                     modifier = Modifier,
                     colors = IconButtonDefaults.filledIconButtonColors(),
+                    enabled = enabled,
                     onClick = { onAction(text) }
                 ) {
                     Icon(Icons.AutoMirrored.Default.Chat, null)
@@ -301,6 +285,7 @@ private fun SearchUserItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable { onClick(user) }
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)

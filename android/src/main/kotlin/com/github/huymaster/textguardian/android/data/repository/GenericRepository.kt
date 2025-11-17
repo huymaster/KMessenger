@@ -4,10 +4,11 @@ import android.util.Log
 import com.github.huymaster.textguardian.android.data.type.RepositoryResult
 import com.github.huymaster.textguardian.core.api.APIVersion1Service
 import kotlinx.coroutines.CancellationException
+import org.koin.core.component.KoinComponent
 
 class GenericRepository(
     private val service: APIVersion1Service
-) {
+) : KoinComponent {
     suspend fun checkServiceHealth(): RepositoryResult<Nothing> {
         return try {
             val response = service.health()

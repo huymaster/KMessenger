@@ -113,7 +113,11 @@ private fun ChatListScreenContent(
         Scaffold(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             snackbarHost = { SnackbarHost(snackbarHostState) },
-            topBar = { ChatListTopAppBar(scrollBehavior) { scope.launch { if (drawerState.isOpen) drawerState.close() else drawerState.open() } } },
+            topBar = {
+                ChatListTopAppBar(scrollBehavior, reloadRequest) {
+                    scope.launch { if (drawerState.isOpen) drawerState.close() else drawerState.open() }
+                }
+            },
             floatingActionButton = {
                 FloatingActionButton(onClick = { navController?.navigate("NEW_CHAT") }) {
                     Icon(
@@ -190,6 +194,7 @@ private fun ChatListDrawer(
 @Composable
 private fun ChatListTopAppBar(
     scrollBehavior: TopAppBarScrollBehavior,
+    reloadRequest: () -> Unit,
     onMenuClick: () -> Unit = {}
 ) {
     TopAppBar(
@@ -197,7 +202,10 @@ private fun ChatListTopAppBar(
             IconButton(onClick = onMenuClick) { Icon(Icons.Default.Menu, null) }
         },
         colors = TopAppBarDefaults.topAppBarColors(),
-        actions = { QuickThemeButton() },
+        actions = {
+            IconButton(onClick = reloadRequest) { Icon(Icons.Default.Refresh, null) }
+            QuickThemeButton()
+        },
         scrollBehavior = scrollBehavior
     )
 }
@@ -222,11 +230,16 @@ private fun ChatListConversations(
         contentAlignment = Alignment.Center
     ) {
         if (list.isEmpty()) {
-            Text(
-                modifier = Modifier.padding(16.dp),
-                textAlign = TextAlign.Center,
-                text = "No conversation available"
-            )
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    modifier = Modifier.padding(16.dp),
+                    textAlign = TextAlign.Center,
+                    text = "No conversation available"
+                )
+            }
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
@@ -362,7 +375,7 @@ private fun instantToString(past: Instant): String {
     val duration = Duration.between(past, now)
     if (duration.isZero || duration.isNegative)
         return "Just now"
-    val seconds = duration.toSeconds()
+    val seconds = duration.seconds
     val minutes = seconds / 60
     val hours = minutes / 60
 

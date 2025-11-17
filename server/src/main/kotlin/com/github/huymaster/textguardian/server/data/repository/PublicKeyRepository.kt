@@ -6,12 +6,13 @@ import com.github.huymaster.textguardian.core.entity.PublicKeyEntity
 import com.github.huymaster.textguardian.server.data.table.PublicKeyTable
 import io.ktor.http.*
 import org.koin.core.component.get
+import org.ktorm.dsl.and
 import org.ktorm.dsl.eq
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 import java.util.*
 
 class PublicKeyRepository : BaseRepository<PublicKeyEntity, PublicKeyTable>(PublicKeyTable) {
-
     suspend fun getPublicKeys(userId: UUID): RepositoryResult {
         try {
             val list = findAll { it.userId eq userId }
@@ -27,7 +28,8 @@ class PublicKeyRepository : BaseRepository<PublicKeyEntity, PublicKeyTable>(Publ
     }
 
     suspend fun addPublicKey(userId: UUID, key: String): RepositoryResult {
-        if (replaceKeyIfExist(userId, key)) return RepositoryResult.Success(Unit)
+
+        if (extendTimeIfExist(userId, key)) return RepositoryResult.Success(null)
         try {
             val publicKey = PublicKeyEntity()
             publicKey.userId = userId
@@ -41,8 +43,14 @@ class PublicKeyRepository : BaseRepository<PublicKeyEntity, PublicKeyTable>(Publ
         }
     }
 
-    private suspend fun replaceKeyIfExist(userId: UUID, key: String): Boolean {
+    private suspend fun extendTimeIfExist(userId: UUID, key: String): Boolean {
         val bytes = get<Base64.Decoder>().decode(key)
-        return false
+        if (!exists { (it.userId eq userId) and (it.key eq bytes) }) return false
+        val updated = updateAll(
+            { (it.userId eq userId) and (it.key eq bytes) },
+            { it.shouldRemove = Instant.now().plus(1L, ChronoUnit.DAYS) }
+        )
+
+        return updated.isNotEmpty()
     }
 }

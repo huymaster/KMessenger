@@ -2,6 +2,7 @@ package com.github.huymaster.textguardian.server.data.table
 
 import com.github.huymaster.textguardian.core.entity.MessageEntity
 import com.github.huymaster.textguardian.core.utils.bytesarray
+import org.ktorm.schema.boolean
 import org.ktorm.schema.timestamp
 import org.ktorm.schema.uuid
 
@@ -14,8 +15,10 @@ object MessageTable : BaseTable<MessageEntity>("message") {
         .bindTo { it.senderId }
     val sendAt = timestamp("send_at")
         .bindTo { it.sendAt }
-    val sessionKeys = bytesarray("session_keys")
+    val sessionKeys = bytesarray("keys")
         .bindTo { it.sessionKeys }
     val replyTo = uuid("reply_to")
         .bindTo { it.replyTo }
+    val valid = boolean("valid")
+        .bindTo { it.valid }
 }

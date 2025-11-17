@@ -26,6 +26,12 @@ class AppSettingsManager private constructor(context: Context) {
 
         object FCM_TOKEN : Settings<String>("fcm_token", "")
 
+        object FONT : Settings<String>("font", "System") {
+            const val SYSTEM = "System"
+            const val UBUNTU = "Ubuntu"
+            val VALUES = listOf(SYSTEM, UBUNTU)
+        }
+
         private val state: MutableState<T> = mutableStateOf(INSTANCE.get(this))
         override var value: T
             get() = state.value

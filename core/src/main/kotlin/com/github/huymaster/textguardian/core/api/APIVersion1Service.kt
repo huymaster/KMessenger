@@ -14,16 +14,24 @@ interface APIVersion1Service {
     suspend fun health(): Response<Unit>
 
     @POST("$PREFIX/auth/register")
-    suspend fun register(@Body body: RegisterRequest): Response<Unit>
+    suspend fun register(
+        @Body body: RegisterRequest
+    ): Response<Unit>
 
     @POST("$PREFIX/auth/login")
-    suspend fun login(@Body body: LoginRequest): Response<RefreshToken>
+    suspend fun login(
+        @Body body: LoginRequest
+    ): Response<RefreshToken>
 
     @GET("$PREFIX/auth/refresh")
-    suspend fun refresh(@Query("refreshToken") refreshToken: String): Response<AccessToken>
+    suspend fun refresh(
+        @Query("refreshToken") refreshToken: String
+    ): Response<AccessToken>
 
     @GET("$PREFIX/auth/check")
-    suspend fun check(@Header("Authorization") bearer: String): Response<Unit>
+    suspend fun check(
+        @Header("Authorization") bearer: String
+    ): Response<Unit>
 
     @DELETE("$PREFIX/auth/logout")
     suspend fun logout(
@@ -48,8 +56,21 @@ interface APIVersion1Service {
         @Body body: UserInfo
     ): Response<List<String>>
 
+    @GET("$PREFIX/keys")
+    suspend fun getPublicKeys(
+        @Query("userId") userId: String
+    ): Response<UserPublicKeys>
+
+    @POST("$PREFIX/key")
+    suspend fun addPublicKey(
+        @Header("Authorization") bearer: String,
+        @Body body: UserPublicKey
+    ): Response<Unit>
+
     @GET("$PREFIX/conversations")
-    suspend fun getConversations(@Header("Authorization") bearer: String): Response<List<ConversationInfo>>
+    suspend fun getConversations(
+        @Header("Authorization") bearer: String
+    ): Response<List<ConversationInfo>>
 
     @POST("$PREFIX/conversation")
     suspend fun createConversation(
@@ -93,4 +114,18 @@ interface APIVersion1Service {
         @Header("Authorization") bearer: String,
         @Body body: ParticipantInfo
     ): Response<Unit>
+
+    @POST("$PREFIX/message/{id}")
+    suspend fun sendMessage(
+        @Header("Authorization") bearer: String,
+        @Path("id") conversationId: String,
+        @Body body: Message
+    ): Response<Unit>
+
+    @GET("$PREFIX/message/{id}")
+    suspend fun getMessages(
+        @Header("Authorization") bearer: String,
+        @Path("id") conversationId: String,
+        @Query("from") startMessageId: String?
+    ): Response<List<Message>>
 }

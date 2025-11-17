@@ -1,6 +1,7 @@
 package com.github.huymaster.textguardian.server.api.v1
 
 import com.github.huymaster.textguardian.core.api.type.UserInfo
+import com.github.huymaster.textguardian.core.api.type.UserPublicKey
 import com.github.huymaster.textguardian.core.api.type.UserPublicKeys
 import com.github.huymaster.textguardian.core.entity.UserEntity
 import com.github.huymaster.textguardian.server.api.APIVersion1.getClaim
@@ -121,4 +122,23 @@ object UserRoute : SubRoute() {
         call.respond(rr.data as UserPublicKeys)
     }
 
+    suspend fun addPublicKey(call: ApplicationCall) {
+        val publicKey: PublicKeyRepository by inject()
+        val userId = runCatching { call.getClaim(USER_ID_CLAIM) { UUID.fromString(asString()) } }.getOrNull()
+        if (userId == null) {
+            call.sendErrorResponse("Invalid user id or not authenticated", status = HttpStatusCode.Unauthorized)
+            return
+        }
+        val request = call.receiveNullableNoThrow<UserPublicKey>()
+        if (request == null) {
+            call.sendErrorResponse("Invalid request. Field [key] is required. Key is Base64 encoded and valid public key.")
+            return
+        }
+        val rr = publicKey.addPublicKey(userId, request.key)
+        if ((rr is RepositoryResult.Error)) {
+            call.sendErrorResponse(rr)
+            return
+        }
+        call.respond(HttpStatusCode.OK)
+    }
 }

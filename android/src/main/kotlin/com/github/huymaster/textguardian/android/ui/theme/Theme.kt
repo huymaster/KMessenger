@@ -1,6 +1,7 @@
 package com.github.huymaster.textguardian.android.ui.theme
 
 import android.app.Activity
+import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -26,20 +27,33 @@ private val LightColorScheme = lightColorScheme(
 @ExperimentalMaterial3ExpressiveApi
 @Composable
 fun KMessengerTheme(
-    dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
     val theme by AppSettingsManager.Settings.THEME
+    val font by AppSettingsManager.Settings.FONT
     val context = LocalContext.current
     val darkTheme = when (theme) {
         AppSettingsManager.Settings.THEME.DARK -> true
         AppSettingsManager.Settings.THEME.LIGHT -> false
         else -> isSystemInDarkTheme()
     }
-    val colorScheme = when (darkTheme) {
-        true -> dynamicDarkColorScheme(context)
-        false -> dynamicLightColorScheme(context)
+    val typo = when (font) {
+        AppSettingsManager.Settings.FONT.SYSTEM -> DefaultTypography
+        AppSettingsManager.Settings.FONT.UBUNTU -> UbuntuTypography
+        else -> DefaultTypography
     }
+    val colorScheme =
+        when (darkTheme) {
+            true -> if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S)
+                DarkColorScheme
+            else
+                dynamicDarkColorScheme(context)
+
+            false -> if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S)
+                LightColorScheme
+            else
+                dynamicLightColorScheme(context)
+        }
 
     val view = LocalView.current
     if (!view.isInEditMode) {
@@ -53,6 +67,6 @@ fun KMessengerTheme(
         colorScheme = colorScheme,
         motionScheme = MotionScheme.expressive(),
         content = content,
-        typography = Typography
+        typography = typo
     )
 }

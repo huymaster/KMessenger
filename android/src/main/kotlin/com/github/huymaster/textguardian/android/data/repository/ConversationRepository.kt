@@ -6,12 +6,13 @@ import com.github.huymaster.textguardian.core.api.APIVersion1Service
 import com.github.huymaster.textguardian.core.api.type.ConversationInfo
 import com.github.huymaster.textguardian.core.api.type.CreateConversationRequest
 import com.github.huymaster.textguardian.core.api.type.ParticipantInfo
+import org.koin.core.component.KoinComponent
 import java.util.*
 
 class ConversationRepository(
     private val service: APIVersion1Service,
     private val tokenManager: JWTTokenManager
-) {
+) : KoinComponent {
     suspend fun getConversations(): RepositoryResult<List<ConversationInfo>> {
         return try {
             val token = runCatching {

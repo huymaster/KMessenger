@@ -8,11 +8,14 @@ import java.security.PublicKey
 import java.util.*
 
 data class UserPublicKey(
-    @get:JsonProperty("userId") val userId: UUID,
+    @get:JsonProperty("userId") val userId: UUID?,
     @get:JsonProperty("key") val key: String
 ) {
     companion object {
+        @JsonIgnore
         private val encoder = get<Base64.Encoder>(Base64.Encoder::class.java)
+
+        @JsonIgnore
         private val decoder = get<Base64.Decoder>(Base64.Decoder::class.java)
     }
 
@@ -33,7 +36,8 @@ data class UserPublicKey(
     @JsonIgnore
     val public: PublicKey = KeyReconstruct.reconstructPublicKey(bytes)
 
-    constructor(userId: UUID, key: ByteArray) : this(userId, encoder.encodeToString(key))
-    constructor(userId: UUID, key: Array<Byte>) : this(userId, key.toByteArray())
-    constructor(userId: UUID, key: Collection<Byte>) : this(userId, key.toByteArray())
+    constructor(userId: UUID?, key: ByteArray) : this(userId, encoder.encodeToString(key))
+    constructor(userId: UUID?, key: Array<Byte>) : this(userId, key.toByteArray())
+    constructor(userId: UUID?, key: Collection<Byte>) : this(userId, key.toByteArray())
+    constructor(userId: UUID?, key: PublicKey) : this(userId, key.encoded)
 }

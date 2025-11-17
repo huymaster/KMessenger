@@ -2,7 +2,6 @@
 
 package com.github.huymaster.textguardian.android.ui.activity
 
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.os.PersistableBundle
@@ -20,9 +19,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.github.huymaster.textguardian.android.app.ApplicationEvents
 import com.github.huymaster.textguardian.android.app.JWTTokenManager
+import com.github.huymaster.textguardian.android.data.repository.CipherRepository
 import com.github.huymaster.textguardian.android.ui.screen.ChatListScreen
+import com.github.huymaster.textguardian.android.ui.screen.ChatScreen
 import com.github.huymaster.textguardian.android.ui.screen.NewChatScreen
 import com.github.huymaster.textguardian.android.ui.utils.with
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.koin.core.component.get
 
 class ChatActivity : BaseActivity() {
@@ -32,7 +36,6 @@ class ChatActivity : BaseActivity() {
         CHAT_LIST, NEW_CHAT, CHAT
     }
 
-    @SuppressLint("UnusedContentLambdaTargetStateParameter")
     @Composable
     override fun Content(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
         val navController = rememberNavController()
@@ -47,7 +50,6 @@ class ChatActivity : BaseActivity() {
                 navController = navController, startDestination = Screen.CHAT_LIST.name
             ) {
                 composable(
-
                     route = Screen.CHAT_LIST.name,
                     enterTransition = { fadeIn() },
                     popExitTransition = { fadeOut() }
@@ -68,10 +70,16 @@ class ChatActivity : BaseActivity() {
                     )
                 }
                 composable(
-                    route = "${Screen.CHAT.name}/{chatId}",
+                    route = "${Screen.CHAT.name}/{conversationId}",
                     enterTransition = { slideInHorizontally(animationSpec = tween(300)) { it } },
                     popExitTransition = { slideOutVertically(animationSpec = tween(300)) { it } }
                 ) {
+                    val conversationId = navController.currentBackStackEntry?.arguments?.getString("conversationId")
+                    ChatScreen(
+                        transitionBundle = this@SharedTransitionLayout with this,
+                        navController = navController,
+                        conversationId = conversationId
+                    )
                 }
             }
         }
@@ -79,6 +87,11 @@ class ChatActivity : BaseActivity() {
 
     override fun onCreateEx(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
         get<JWTTokenManager>().autoCheckToken(lifecycleScope)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        CoroutineScope(Dispatchers.IO).launch { get<CipherRepository>().sendPublicKey() }
     }
 
     private fun moveToMainActivity() {

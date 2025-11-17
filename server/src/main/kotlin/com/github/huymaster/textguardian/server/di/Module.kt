@@ -37,7 +37,7 @@ object Module {
             _mongoDatabaseHolder.get()
         }
         single { DatabasePicker() }
-        factory { get<DatabasePicker>().pickFastestAsync() }
+        factory { get<DatabasePicker>().pickFastestSync() }
         single { AttachmentRepository() }
         single { ConversationRepository() }
         single { CredentialRepository() }

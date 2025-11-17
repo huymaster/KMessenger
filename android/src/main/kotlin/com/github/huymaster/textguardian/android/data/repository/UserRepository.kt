@@ -4,12 +4,13 @@ import com.github.huymaster.textguardian.android.app.JWTTokenManager
 import com.github.huymaster.textguardian.android.data.type.RepositoryResult
 import com.github.huymaster.textguardian.core.api.APIVersion1Service
 import com.github.huymaster.textguardian.core.api.type.UserInfo
+import org.koin.core.component.KoinComponent
 import java.util.*
 
 class UserRepository(
     private val service: APIVersion1Service,
     private val tokenManager: JWTTokenManager
-) {
+) : KoinComponent {
     suspend fun getMe(): RepositoryResult<UserInfo> = getUserInfo(null)
 
     suspend fun getUserInfo(uuid: UUID?): RepositoryResult<UserInfo> {

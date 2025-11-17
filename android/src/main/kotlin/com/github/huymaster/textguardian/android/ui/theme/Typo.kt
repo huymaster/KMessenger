@@ -33,7 +33,8 @@ val ubuntuFonts = FontFamily(
     ubuntuBoldItalic,
 )
 
-val Typography = Typography(
+val DefaultTypography = Typography()
+val UbuntuTypography = Typography(
     displayLarge = TextStyle(
         fontFamily = ubuntuFonts,
         fontWeight = FontWeight(400),

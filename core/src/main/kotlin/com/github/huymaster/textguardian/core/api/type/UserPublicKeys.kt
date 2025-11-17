@@ -6,11 +6,14 @@ import java.security.PublicKey
 import java.util.*
 
 data class UserPublicKeys(
-    @get:JsonProperty("userId") val userId: UUID,
+    @get:JsonProperty("userId") val userId: UUID?,
     @get:JsonProperty("keys") val keys: Collection<String>
 ) {
     companion object {
+        @JsonIgnore
         private val encoder = Base64.getEncoder()
+
+        @JsonIgnore
         private val decoder = Base64.getDecoder()
 
         fun from(list: Collection<UserPublicKey>): UserPublicKeys {

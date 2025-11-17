@@ -21,7 +21,7 @@ object SharedModule {
     val security = module {
         single<KeyPairGenerator> {
             KeyPairGenerator.getInstance(KEY_PAIR_ALGORITHM).apply {
-                initialize(KyberParameterSpec.kyber1024)
+                initialize(KyberParameterSpec.kyber512)
             }
         }
         factory<KeyPair> { get<KeyPairGenerator>().generateKeyPair() }

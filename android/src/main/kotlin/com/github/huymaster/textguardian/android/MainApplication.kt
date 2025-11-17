@@ -9,13 +9,11 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import com.github.huymaster.textguardian.android.di.Module
 import com.github.huymaster.textguardian.core.di.SharedModule
 import com.google.firebase.FirebaseApp
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.KoinApplication
@@ -53,12 +51,17 @@ class MainApplication : Application() {
     }
 
     override fun onCreate() {
-        ProcessLifecycleOwner.get().lifecycle.addObserver(ApplicationState)
-        startKoin { init(this@MainApplication) }
         super.onCreate()
-        CoroutineScope(Dispatchers.IO).launch {
-            runCatching { FirebaseApp.initializeApp(this@MainApplication) }
-                .onFailure { Log.e("MainApplication", "Failed to initialize Firebase", it) }
+        val handler = CoroutineExceptionHandler { context, throwable ->
+            Log.w("MainApplication", "Failed to initialize app", throwable)
         }
+        startKoin { init(this@MainApplication) }
+        val initJob = CoroutineScope(
+            context = Dispatchers.Main + SupervisorJob(),
+        ).launch(start = CoroutineStart.LAZY) {
+            launch(handler) { ProcessLifecycleOwner.get().lifecycle.addObserver(ApplicationState) }
+            launch(handler) { FirebaseApp.initializeApp(this@MainApplication) }
+        }
+        initJob.start()
     }
 }

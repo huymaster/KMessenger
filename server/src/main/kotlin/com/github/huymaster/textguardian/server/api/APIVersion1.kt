@@ -1,6 +1,7 @@
 package com.github.huymaster.textguardian.server.api
 
 import com.github.huymaster.textguardian.server.api.v1.AuthRoute
+import com.github.huymaster.textguardian.server.api.v1.ChatRoute
 import com.github.huymaster.textguardian.server.api.v1.ConversationRoute
 import com.github.huymaster.textguardian.server.api.v1.UserRoute
 import io.ktor.server.html.*
@@ -75,6 +76,7 @@ object APIVersion1 : BaseAPI(1) {
         protect {
             get("/user") { UserRoute.getUser(call) }
             put("/user") { UserRoute.updateInfo(call) }
+            post("/key") { UserRoute.addPublicKey(call) }
         }
     }
 
@@ -92,6 +94,9 @@ object APIVersion1 : BaseAPI(1) {
     }
 
     private fun Route.chatRoute() {
-
+        protect {
+            post("/message/{conversationId}") { ChatRoute.sendMessage(call) }
+            get("/message/{conversationId}") { ChatRoute.getMessages(call) }
+        }
     }
 }

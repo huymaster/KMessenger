@@ -5,10 +5,10 @@ import java.time.Instant
 import java.util.*
 
 data class Message(
-    @get:JsonProperty("conversationId") val conversationId: UUID,
     @get:JsonProperty("content") val content: ByteArray,
     @get:JsonProperty("senderId") val senderId: UUID,
-    @get:JsonProperty("sendAt") val sendAt: Instant,
-    @get:JsonProperty("sessionKeys") val sessionKeys: Collection<String>,
-    @get:JsonProperty("replyTo") val replyTo: UUID?
+    @get:JsonProperty("keys") val sessionKeys: Array<ByteArray>,
+    @get:JsonProperty("sendAt") val sendAt: Instant?,
+    @get:JsonProperty("replyTo") val replyTo: UUID?,
+    @get:JsonProperty("attachments") val attachments: Collection<UUID> = emptyList()
 )
