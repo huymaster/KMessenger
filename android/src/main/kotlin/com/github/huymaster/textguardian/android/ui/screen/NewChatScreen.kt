@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.github.huymaster.textguardian.android.ui.utils.SharedTransitionBundle
@@ -35,7 +36,7 @@ fun NewChatScreen(
 ) {
     val scope = rememberCoroutineScope()
     val model = viewModel<NewChatViewModel>()
-    val state by model.state.collectAsState()
+    val state by model.state.collectAsStateWithLifecycle()
 
     NewChatScreenContent(
         transitionBundle,
@@ -285,7 +286,7 @@ private fun SearchUserItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick(user) }
+            .clickable(enabled = enabled) { onClick(user) }
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)

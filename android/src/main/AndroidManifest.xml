@@ -21,13 +21,19 @@
         <activity
                 android:name=".ui.activity.MainActivity"
                 android:exported="true"
+                android:windowSoftInputMode="adjustResize"
                 android:theme="@style/Theme.KMessenger">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name=".ui.activity.ChatActivity" android:exported="false"/>
+        <activity
+                android:windowSoftInputMode="adjustResize"
+                android:name=".ui.activity.ChatActivity"
+                android:exported="false"/>
+
+        <activity android:name=".ui.activity.ErrorActivity" android:exported="false"/>
 
         <service
                 android:name=".service.MessageService"

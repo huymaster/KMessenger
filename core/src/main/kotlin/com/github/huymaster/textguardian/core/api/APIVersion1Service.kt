@@ -122,10 +122,24 @@ interface APIVersion1Service {
         @Body body: Message
     ): Response<Unit>
 
+    @GET("$PREFIX/message/{cid}/{mid}")
+    suspend fun getMessage(
+        @Header("Authorization") bearer: String,
+        @Path("cid") conversationId: String,
+        @Path("mid") messageId: String
+    )
+
     @GET("$PREFIX/message/{id}")
     suspend fun getMessages(
         @Header("Authorization") bearer: String,
         @Path("id") conversationId: String,
         @Query("from") startMessageId: String?
+    ): Response<List<Message>>
+
+    @GET("$PREFIX/message/{id}/latest")
+    suspend fun getLastestMessages(
+        @Header("Authorization") bearer: String,
+        @Path("id") conversationId: String,
+        @Query("since") since: String?
     ): Response<List<Message>>
 }

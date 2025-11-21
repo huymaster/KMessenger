@@ -55,6 +55,15 @@ class ConversationRepository : BaseRepository<ConversationEntity, ConversationTa
             RepositoryResult.Error("Failed to rename conversation", HttpStatusCode.InternalServerError)
     }
 
+    suspend fun setLastUpdated(conversationId: UUID, instant: Instant? = null): RepositoryResult {
+        return if (update({ it.conversationId eq conversationId }) {
+                it.lastUpdated = instant ?: Instant.now()
+            } != null)
+            RepositoryResult.Success(null)
+        else
+            RepositoryResult.Error("Failed to set last updated", HttpStatusCode.InternalServerError)
+    }
+
     suspend fun deleteConversation(userId: UUID, conversationId: UUID): RepositoryResult {
         val ownerResult = checkCreator(conversationId, userId)
         if (ownerResult is RepositoryResult.Error) {

@@ -11,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.huymaster.textguardian.android.viewmodel.InitViewModel
 
@@ -19,7 +20,7 @@ fun InitScreen(
     onServiceAvailable: (Boolean) -> Unit
 ) {
     val model = viewModel<InitViewModel>()
-    val state by model.state.collectAsState()
+    val state by model.state.collectAsStateWithLifecycle()
     var message by remember { mutableStateOf("") }
     var retry by remember { mutableLongStateOf(0L) }
     LaunchedEffect(retry) { model.checkServiceHealth() }

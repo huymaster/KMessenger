@@ -22,10 +22,14 @@ data class ChatListState(
 )
 
 class ChatListViewModel : BaseViewModel() {
+    companion object {
+        private var savedChats: List<ConversationInfo> = emptyList()
+    }
+
     private val authRepository: AuthenticationRepository by inject()
     private val repository: ConversationRepository by inject()
     private val tokenManager: JWTTokenManager by inject()
-    private val _state = MutableStateFlow(ChatListState())
+    private val _state = MutableStateFlow(ChatListState(chats = savedChats))
     val state: StateFlow<ChatListState> = _state.asStateFlow()
 
     init {
@@ -35,8 +39,10 @@ class ChatListViewModel : BaseViewModel() {
     suspend fun reload() {
         _state.update { it.copy(isLoading = true) }
         when (val result = repository.getConversations()) {
-            is RepositoryResult.Success<List<ConversationInfo>> ->
-                _state.update { it.copy(isLoading = false, chats = result.data ?: emptyList()) }
+            is RepositoryResult.Success<List<ConversationInfo>> -> {
+                savedChats = result.data ?: emptyList()
+                _state.update { it.copy(isLoading = false, chats = savedChats) }
+            }
 
             else ->
                 _state.update { it.copy(isLoading = false, error = result.message) }

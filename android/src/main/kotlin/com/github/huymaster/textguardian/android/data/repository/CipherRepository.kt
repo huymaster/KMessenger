@@ -15,10 +15,10 @@ class CipherRepository(
 ) : KoinComponent {
     suspend fun sendPublicKey(): RepositoryResult<Nothing> {
         val token = tokenManager.getAccessToken() ?: return RepositoryResult.Error(message = "Token is null")
-        val publicKey = cipherManager.publicKey
 
         return runCatching {
-            service.addPublicKey(token, UserPublicKey(null, key = publicKey))
+            val publicKey = UserPublicKey(null, key = cipherManager.publicKey)
+            service.addPublicKey(token, publicKey)
         }.fold(
             onSuccess = { RepositoryResult.Success() },
             onFailure = { RepositoryResult.Error(it) }

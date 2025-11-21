@@ -1,37 +1,37 @@
 [versions]
 kotlin = "2.2.21"
-composeHotReload = "1.0.0-rc02"
+composeHotReload = "1.0.0-rc04"
 composeMultiplatform = "1.9.3"
 
 jackson = "2.20.1"
 mongo = "5.6.1"
 ktorm = "4.1.1"
 koin = "4.1.1"
-koin-annotations = "2.3.0"
+koin-annotations = "2.3.1"
 retrofit = "3.0.0"
 postgresql = "42.7.8"
 bouncyCastle = "1.82"
 jmimemagic = "0.1.5"
-commons-io = "2.20.0"
+commons-io = "2.21.0"
 
 firebase-admin = "9.6.0"
-firebase-bom = "34.5.0"
+firebase-bom = "34.6.0"
 google-services = "4.4.4"
 
 ktor = "3.3.2"
-ktor-plugin = "3.3.1"
+ktor-plugin = "3.3.2"
 
 agp = "8.12.3"
-logback = "1.5.20"
+logback = "1.5.21"
 coreKtx = "1.17.0"
 junit = "4.13.2"
 junit5 = "6.0.1"
 junitVersion = "1.3.0"
 espressoCore = "3.7.0"
-lifecycleRuntimeKtx = "2.9.4"
-activityCompose = "1.11.0"
-composeBom = "2025.11.00"
-material3 = "1.5.0-alpha08"
+lifecycleRuntimeKtx = "2.10.0"
+activityCompose = "1.12.0"
+composeBom = "2025.11.01"
+material3 = "1.5.0-alpha09"
 biometric = "1.4.0-alpha02"
 navigationCompose = "2.9.6"
 
@@ -88,6 +88,12 @@ ktor-server-html-builder = { module = "io.ktor:ktor-server-html-builder", versio
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 ktor-server-test-host = { module = "io.ktor:ktor-server-test-host", version.ref = "ktor" }
 ktor-server-websockets = { module = "io.ktor:ktor-server-websockets", version.ref = "ktor" }
+
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-client-jackson = { module = "io.ktor:ktor-client-jackson", version.ref = "ktor" }
+ktor-client-websockets = { module = "io.ktor:ktor-client-websockets", version.ref = "ktor" }
 
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }

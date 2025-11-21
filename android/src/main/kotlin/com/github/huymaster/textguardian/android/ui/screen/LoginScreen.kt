@@ -34,6 +34,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.github.huymaster.textguardian.android.viewmodel.LoginState
 import com.github.huymaster.textguardian.android.viewmodel.LoginViewModel
@@ -47,7 +48,7 @@ fun LoginScreen(
     onLoginSuccess: () -> Unit
 ) {
     val model = viewModel<LoginViewModel>()
-    val state by model.state.collectAsState()
+    val state by model.state.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     LaunchedEffect(state) {
         if (state.isSuccess) onLoginSuccess()

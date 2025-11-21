@@ -51,9 +51,7 @@ abstract class BaseActivity : AppCompatActivity(), KoinComponent {
     ) {
         enableEdgeToEdge()
         setContent {
-            KMessengerTheme {
-                Content(savedInstanceState, persistentState)
-            }
+            KMessengerTheme { Content(savedInstanceState, persistentState) }
         }
     }
 

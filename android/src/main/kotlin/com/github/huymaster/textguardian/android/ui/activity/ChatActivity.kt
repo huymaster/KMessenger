@@ -9,6 +9,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -38,12 +39,15 @@ class ChatActivity : BaseActivity() {
 
     @Composable
     override fun Content(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
+        Surface { ActivityContent() }
+    }
+
+    @Composable
+    private fun ActivityContent() {
         val navController = rememberNavController()
         val sessionExpired by get<ApplicationEvents>().sessionExpired.collectAsState(false)
 
-        LaunchedEffect(sessionExpired) {
-            if (sessionExpired) moveToMainActivity()
-        }
+        LaunchedEffect(sessionExpired) { if (sessionExpired) moveToMainActivity() }
 
         SharedTransitionLayout {
             NavHost(
@@ -51,8 +55,6 @@ class ChatActivity : BaseActivity() {
             ) {
                 composable(
                     route = Screen.CHAT_LIST.name,
-                    enterTransition = { fadeIn() },
-                    popExitTransition = { fadeOut() }
                 ) {
                     ChatListScreen(
                         transitionBundle = this@SharedTransitionLayout with this,
@@ -61,8 +63,8 @@ class ChatActivity : BaseActivity() {
                 }
                 composable(
                     route = Screen.NEW_CHAT.name,
-                    enterTransition = { slideInVertically(animationSpec = tween(300)) { it } },
-                    popExitTransition = { slideOutVertically(animationSpec = tween(300)) { it } }
+                    enterTransition = { slideInVertically(animationSpec = tween(300)) { it } + fadeIn() },
+                    popExitTransition = { slideOutVertically(animationSpec = tween(300)) { it } + fadeOut() }
                 ) {
                     NewChatScreen(
                         transitionBundle = this@SharedTransitionLayout with this,
@@ -72,7 +74,7 @@ class ChatActivity : BaseActivity() {
                 composable(
                     route = "${Screen.CHAT.name}/{conversationId}",
                     enterTransition = { slideInHorizontally(animationSpec = tween(300)) { it } },
-                    popExitTransition = { slideOutVertically(animationSpec = tween(300)) { it } }
+                    popExitTransition = { slideOutHorizontally(animationSpec = tween(300)) { it } }
                 ) {
                     val conversationId = navController.currentBackStackEntry?.arguments?.getString("conversationId")
                     ChatScreen(

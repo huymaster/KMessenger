@@ -1,7 +1,6 @@
 package com.github.huymaster.textguardian.android.ui.component
 
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BrightnessAuto
 import androidx.compose.material.icons.filled.DarkMode
@@ -22,7 +21,13 @@ fun QuickThemeButton(
         theme = AppSettingsManager.Settings.THEME.VALUES[mode]
     }
 
-    Crossfade(theme, animationSpec = tween(500)) {
+    AnimatedContent(
+        targetState = theme,
+        transitionSpec = {
+            (fadeIn() + slideInVertically { it } togetherWith fadeOut() + slideOutVertically { it })
+                .using(SizeTransform(clip = true))
+        }
+    ) {
         val icon = when (it) {
             AppSettingsManager.Settings.THEME.DARK -> Icons.Default.DarkMode
             AppSettingsManager.Settings.THEME.LIGHT -> Icons.Default.LightMode

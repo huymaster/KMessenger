@@ -5,8 +5,11 @@ import com.github.huymaster.textguardian.core.entity.MessageEntity
 import com.github.huymaster.textguardian.server.data.table.MessageTable
 import com.mongodb.kotlin.client.coroutine.MongoCollection
 import com.mongodb.kotlin.client.coroutine.MongoDatabase
+import com.mongodb.kotlin.client.model.Filters.eq
 import com.mongodb.kotlin.client.model.Filters.`in`
 import io.ktor.http.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.toList
 import org.koin.core.component.get
 import org.koin.core.component.inject
@@ -15,7 +18,7 @@ import java.time.Instant
 import java.util.*
 
 class MessageRepository : BaseRepository<MessageEntity, MessageTable>(MessageTable) {
-    data class CipherMessage(val id: String, val cipherText: ByteArray) {
+    data class CipherMessage(val id: String, val cipherText: ByteArray = byteArrayOf()) {
         constructor(uuid: UUID, cipherText: ByteArray) : this(uuid.toString(), cipherText)
     }
 
@@ -23,6 +26,10 @@ class MessageRepository : BaseRepository<MessageEntity, MessageTable>(MessageTab
         val dabatase: MongoDatabase = get()
         dabatase.getCollection<CipherMessage>("messages")
     }
+
+    private val conversationRepository: ConversationRepository by inject()
+
+    val newMsgFlow = MutableSharedFlow<String>(1)
 
     suspend fun addMessage(userId: UUID, conversationId: UUID, msg: Message): RepositoryResult {
         try {
@@ -35,19 +42,56 @@ class MessageRepository : BaseRepository<MessageEntity, MessageTable>(MessageTab
             val message = MessageEntity()
             message.messageId = UUID.randomUUID()
             message.conversationId = conversationId
-            message.senderId = msg.senderId
+            message.senderId = userId
             message.sendAt = Instant.now()
-            message.sessionKeys = msg.sessionKeys.map { get<Base64.Decoder>().decode(it) }.toTypedArray()
+            message.sessionKeys = msg.sessionKeys
             message.replyTo = msg.replyTo
             val result = runCatching { _messageCollection.insertOne(CipherMessage(message.messageId, msg.content)) }
             message.valid = result.isSuccess && msg.sessionKeys.isNotEmpty()
             return if (create(message) != null) {
+                conversationRepository.setLastUpdated(conversationId, message.sendAt)
+                newMsgFlow.tryEmit(conversationId.toString())
                 RepositoryResult.Success(null)
             } else
                 RepositoryResult.Error("Failed to add message", HttpStatusCode.InternalServerError)
         } catch (e: Exception) {
+            e.printStackTrace()
             return RepositoryResult.Error("Failed to add message. ${e.message}", HttpStatusCode.InternalServerError)
         }
+    }
+
+    suspend fun getMessage(
+        userId: UUID,
+        conversationId: UUID,
+        messageId: UUID
+    ): RepositoryResult {
+        if (!checkPermission(userId, conversationId)) {
+            return RepositoryResult.Error(
+                "You are not a participant of this conversation",
+                HttpStatusCode.Forbidden
+            )
+        }
+
+        val message = find { (it.messageId eq messageId) and (it.valid eq true) }
+            ?: return RepositoryResult.Error("Message not found", HttpStatusCode.NotFound)
+
+        val cipherMessage = _messageCollection.find(CipherMessage::id eq messageId.toString()).firstOrNull()
+        val cipherText = cipherMessage?.cipherText
+        if (cipherMessage == null || cipherText == null) {
+            markInvalidMessage(messageId)
+            return RepositoryResult.Error("Message not found", HttpStatusCode.NotFound)
+        }
+        return RepositoryResult.Success(
+            Message(
+                id = messageId,
+                content = cipherMessage.cipherText,
+                senderId = message.senderId,
+                sessionKeys = message.sessionKeys,
+                sendAt = message.sendAt,
+                replyTo = message.replyTo,
+                attachments = emptyList()
+            )
+        )
     }
 
     suspend fun getMessages(
@@ -89,9 +133,8 @@ class MessageRepository : BaseRepository<MessageEntity, MessageTable>(MessageTab
 
             val messageEntities = query.map { MessageTable.createEntity(it) }
 
-            if (messageEntities.isEmpty()) {
+            if (messageEntities.isEmpty())
                 break
-            }
 
             currentStartTimestamp = messageEntities.last().sendAt
 
@@ -102,12 +145,11 @@ class MessageRepository : BaseRepository<MessageEntity, MessageTable>(MessageTab
 
             for (entity in messageEntities) {
                 val cipherMessage = cipherMessages[entity.messageId.toString()]
-
-                if (cipherMessage == null) {
-                    markInvalidMessage(entity.messageId)
-                } else {
+                val cipherText = cipherMessage?.cipherText
+                if (cipherMessage != null && cipherText != null) {
                     finalMessageList.add(
                         Message(
+                            id = entity.messageId,
                             content = cipherMessage.cipherText,
                             senderId = entity.senderId,
                             sessionKeys = entity.sessionKeys,
@@ -116,6 +158,8 @@ class MessageRepository : BaseRepository<MessageEntity, MessageTable>(MessageTab
                             attachments = emptyList()
                         )
                     )
+                } else {
+                    markInvalidMessage(entity.messageId)
                 }
 
                 if (finalMessageList.size == limit) {
@@ -132,6 +176,64 @@ class MessageRepository : BaseRepository<MessageEntity, MessageTable>(MessageTab
             RepositoryResult.Error("No messages found", HttpStatusCode.NotFound)
         else
             RepositoryResult.Success(finalMessageList)
+    }
+
+    suspend fun getLastestMessages(userId: UUID, conversationId: UUID, since: UUID): RepositoryResult {
+        if (!checkPermission(userId, conversationId)) {
+            return RepositoryResult.Error(
+                "You are not a participant of this conversation",
+                HttpStatusCode.Forbidden
+            )
+        }
+
+        val currentStartTimestamp =
+            source.newQuery(MessageTable)
+                .select(MessageTable.sendAt)
+                .where(MessageTable.messageId eq since)
+                .map { it[MessageTable.sendAt] }
+                .firstOrNull()
+                ?: return RepositoryResult.Error("Start message not found", HttpStatusCode.NotFound)
+
+        val query = source.newQuery(MessageTable)
+            .select()
+            .where(
+                (MessageTable.conversationId eq conversationId) and
+                        (MessageTable.messageId neq since) and
+                        (MessageTable.valid eq true) and
+                        (MessageTable.sendAt greater currentStartTimestamp)
+            )
+            .orderBy(MessageTable.sendAt.desc())
+
+        val messageEntities = query.map { MessageTable.createEntity(it) }
+        if (messageEntities.isEmpty())
+            return RepositoryResult.Error("No messages found", HttpStatusCode.NotFound)
+
+        val messageIds = messageEntities.map { it.messageId.toString() }
+        val cipherMessages = _messageCollection.find(CipherMessage::id `in` messageIds)
+            .toList()
+            .associateBy { it.id }
+
+        val messageList = mutableListOf<Message>()
+        for (entity in messageEntities) {
+            val cipherMessage = cipherMessages[entity.messageId.toString()]
+            val cipherText = cipherMessage?.cipherText
+            if (cipherMessage == null || cipherText == null) {
+                markInvalidMessage(entity.messageId)
+            } else {
+                messageList.add(
+                    Message(
+                        id = entity.messageId,
+                        content = cipherMessage.cipherText,
+                        senderId = entity.senderId,
+                        sessionKeys = entity.sessionKeys,
+                        sendAt = entity.sendAt,
+                        replyTo = entity.replyTo,
+                        attachments = emptyList()
+                    )
+                )
+            }
+        }
+        return RepositoryResult.Success(messageList)
     }
 
     private suspend fun markInvalidMessage(messageId: UUID) {

@@ -2,6 +2,7 @@ package com.github.huymaster.textguardian.android.app
 
 import android.annotation.SuppressLint
 import android.content.Context
+import com.github.huymaster.textguardian.core.api.type.Message
 import com.github.huymaster.textguardian.core.security.KeyEncapsulator
 import com.github.huymaster.textguardian.core.security.KeyReconstruct
 import org.koin.core.component.KoinComponent
@@ -12,6 +13,7 @@ import java.security.KeyPair
 import java.security.PrivateKey
 import java.security.PublicKey
 import javax.crypto.Cipher
+import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 
 class CipherManager(
@@ -24,19 +26,23 @@ class CipherManager(
     lateinit var publicKey: PublicKey
         private set
 
-    private fun init() {
+    init {
         if (privateKeyFile.exists() && publicKeyFile.exists()) {
             val prk = runCatching { KeyReconstruct.reconstructPrivateKey(privateKeyFile.readBytes()) }.getOrNull()
             val puk = runCatching { KeyReconstruct.reconstructPublicKey(publicKeyFile.readBytes()) }.getOrNull()
             if (prk != null && puk != null) {
                 privateKey = prk
                 publicKey = puk
-                return
+            } else {
+                Files.deleteIfExists(privateKeyFile.toPath())
+                Files.deleteIfExists(publicKeyFile.toPath())
+                generateNewKeyPair()
             }
+        } else {
+            Files.deleteIfExists(privateKeyFile.toPath())
+            Files.deleteIfExists(publicKeyFile.toPath())
+            generateNewKeyPair()
         }
-        Files.deleteIfExists(privateKeyFile.toPath())
-        Files.deleteIfExists(publicKeyFile.toPath())
-        generateNewKeyPair()
     }
 
     private fun generateNewKeyPair() {
@@ -58,8 +64,12 @@ class CipherManager(
     private fun getCipher() =
         Cipher.getInstance("AES")
 
-    fun encapsulation(key: SecretKey, keys: Collection<PublicKey>): List<ByteArray> =
-        keys.map { KeyEncapsulator.encapsulate(it, key) }
+    fun encapsulation(keys: Collection<PublicKey>): Pair<SecretKey, List<ByteArray>> {
+        val key: SecretKey = KeyGenerator.getInstance("AES")
+            .apply { init(256) }
+            .generateKey()
+        return Pair(key, keys.map { KeyEncapsulator.encapsulate(it, key) })
+    }
 
     fun decapsulate(encapsulations: List<ByteArray>): SecretKey? =
         encapsulations.map { runCatching { KeyEncapsulator.decapsulate(privateKey, it) } }
@@ -77,4 +87,12 @@ class CipherManager(
         cipher.init(Cipher.DECRYPT_MODE, key)
         return String(cipher.doFinal(data))
     }
+
+    fun decrypt(data: ByteArray, keySet: Collection<ByteArray>): String {
+        val key = decapsulate(keySet.toList()) ?: throw Exception("Can't decrypt data")
+        return decrypt(data, key)
+    }
+
+    fun decrypt(message: Message): String =
+        decrypt(message.content, message.sessionKeys.toList())
 }

@@ -3,7 +3,9 @@
 package com.github.huymaster.textguardian.android.ui.screen
 
 import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.*
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -15,6 +17,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.drawText
@@ -23,6 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.github.huymaster.textguardian.android.ui.component.QuickThemeButton
@@ -30,12 +34,14 @@ import com.github.huymaster.textguardian.android.ui.utils.SharedTransitionBundle
 import com.github.huymaster.textguardian.android.viewmodel.ChatListState
 import com.github.huymaster.textguardian.android.viewmodel.ChatListViewModel
 import com.github.huymaster.textguardian.core.api.type.ConversationInfo
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.*
+import kotlin.math.abs
 
 @Composable
 fun ChatListScreen(
@@ -44,8 +50,8 @@ fun ChatListScreen(
 ) {
     val scope = rememberCoroutineScope()
     val model = viewModel<ChatListViewModel>()
-    val state by model.state.collectAsState()
-    LaunchedEffect(Unit) { model.reload() }
+    val state by model.state.collectAsStateWithLifecycle()
+    LaunchedEffect(Unit) { delay(100); model.reload() }
     ChatListScreenContent(
         transitionBundle,
         navController,
@@ -114,8 +120,18 @@ private fun ChatListScreenContent(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             snackbarHost = { SnackbarHost(snackbarHostState) },
             topBar = {
-                ChatListTopAppBar(scrollBehavior, reloadRequest) {
-                    scope.launch { if (drawerState.isOpen) drawerState.close() else drawerState.open() }
+                with(transitionBundle.sharedTransitionScope) {
+                    ChatListTopAppBar(
+                        Modifier.sharedBounds(
+                            rememberSharedContentState("topbar"),
+                            transitionBundle.animatedContentScope,
+                            resizeMode = SharedTransitionScope.ResizeMode.RemeasureToBounds
+                        ),
+                        scrollBehavior,
+                        reloadRequest
+                    ) {
+                        scope.launch { if (drawerState.isOpen) drawerState.close() else drawerState.open() }
+                    }
                 }
             },
             floatingActionButton = {
@@ -193,11 +209,13 @@ private fun ChatListDrawer(
 
 @Composable
 private fun ChatListTopAppBar(
+    modifier: Modifier = Modifier,
     scrollBehavior: TopAppBarScrollBehavior,
     reloadRequest: () -> Unit,
     onMenuClick: () -> Unit = {}
 ) {
-    TopAppBar(
+    MediumTopAppBar(
+        modifier = modifier,
         title = { Text("KMessenger", maxLines = 1, overflow = TextOverflow.Ellipsis) }, navigationIcon = {
             IconButton(onClick = onMenuClick) { Icon(Icons.Default.Menu, null) }
         },
@@ -251,7 +269,9 @@ private fun ChatListConversations(
                     ) {
                         ConversationItem(
                             transitionBundle,
-                            item,
+                            item.conversationId,
+                            item.name,
+                            item.lastUpdated,
                             { deleteConversation(item.conversationId) },
                             { onChatSelect(item.conversationId) }
                         )
@@ -267,31 +287,71 @@ private fun ChatListConversations(
 @Composable
 private fun ConversationItem(
     transitionBundle: SharedTransitionBundle,
-    info: ConversationInfo,
+    conversationId: String?,
+    name: String?,
+    lastUpdated: Instant?,
     onDelete: () -> Unit,
     onChatSelect: () -> Unit
 ) {
     var isMenuOpen by remember { mutableStateOf(false) }
+    var confirmDeleteDialog by remember { mutableStateOf(false) }
+    if (confirmDeleteDialog)
+        AlertDialog(
+            onDismissRequest = { confirmDeleteDialog = false },
+            icon = { Icon(Icons.Default.Delete, null) },
+            title = { Text("Delete conversation") },
+            text = {
+                Text(
+                    "If you are owner of this conversation, conversation will be deleted for all members",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onDelete()
+                        confirmDeleteDialog = false
+                    }
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { confirmDeleteDialog = false }
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
     with(transitionBundle.sharedTransitionScope) {
         Box(
             modifier = Modifier
-                .sharedBounds(
-                    rememberSharedContentState("chatbox_${info.conversationId}"),
-                    transitionBundle.animatedContentScope
+                .clip(MaterialTheme.shapes.medium)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = onChatSelect
                 )
-                .clickable { onChatSelect() }
                 .fillMaxWidth()
+                .sharedBounds(
+                    rememberSharedContentState("chatbox_${conversationId}"),
+                    transitionBundle.animatedContentScope,
+                    resizeMode = SharedTransitionScope.ResizeMode.RemeasureToBounds,
+                    zIndexInOverlay = 1f,
+                    renderInOverlayDuringTransition = false
+                )
         ) {
             Row {
                 val textMeasurer = rememberTextMeasurer()
                 val bg = MaterialTheme.colorScheme.primaryContainer
                 val fg = MaterialTheme.colorScheme.onPrimaryContainer
-                val character = info.name.first().toString()
+                val character = name?.first()?.toString() ?: "?"
                 val layout = textMeasurer.measure(character, style = MaterialTheme.typography.titleLarge)
                 Canvas(
                     modifier = Modifier
                         .sharedElement(
-                            rememberSharedContentState("icon_${info.conversationId}"),
+                            rememberSharedContentState("icon_${conversationId}"),
                             transitionBundle.animatedContentScope
                         )
                         .size(78.dp)
@@ -315,14 +375,14 @@ private fun ConversationItem(
                 Text(
                     modifier = Modifier
                         .sharedElement(
-                            rememberSharedContentState("title_${info.conversationId}"),
+                            rememberSharedContentState("title_${conversationId}"),
                             transitionBundle.animatedContentScope
                         )
                         .weight(1f)
                         .padding(top = 12.dp),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    text = info.name,
+                    text = name ?: "<unknown>",
                     fontStyle = MaterialTheme.typography.titleLarge.fontStyle
                 )
                 Text(
@@ -330,7 +390,7 @@ private fun ConversationItem(
                         .padding(top = 12.dp, start = 12.dp, end = 12.dp),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    text = instantToString(info.lastUpdated),
+                    text = instantToString(lastUpdated ?: Instant.EPOCH),
                     color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 12.sp
                 )
@@ -344,7 +404,10 @@ private fun ConversationItem(
                     }
                     MoreMenu(
                         isMenuOpen,
-                        onDelete
+                        {
+                            isMenuOpen = false
+                            confirmDeleteDialog = true
+                        }
                     ) { isMenuOpen = false }
                 }
             }
@@ -395,9 +458,14 @@ private fun instantToString(past: Instant): String {
         }
 
         else -> {
-            val yearDifferent = pastTime.year != currentTime.year
+            val yearDifferent = pastTime.year - currentTime.year
             DateTimeFormatter
-                .ofPattern(if (!yearDifferent) "dd/MM" else "dd/MM/yy", Locale.getDefault())
+                .ofPattern(
+                    if (yearDifferent == 0) "dd/MM"
+                    else if (abs(yearDifferent) < 10) "dd/MM/yy"
+                    else "Long time ago",
+                    Locale.getDefault()
+                )
                 .withZone(ZoneId.systemDefault())
                 .format(past)
         }

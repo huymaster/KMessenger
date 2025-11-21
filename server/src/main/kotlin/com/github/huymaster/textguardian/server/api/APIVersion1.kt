@@ -1,14 +1,29 @@
 package com.github.huymaster.textguardian.server.api
 
+import com.auth0.jwt.JWT
+import com.github.huymaster.textguardian.core.api.type.WebSocketMsg
 import com.github.huymaster.textguardian.server.api.v1.AuthRoute
 import com.github.huymaster.textguardian.server.api.v1.ChatRoute
 import com.github.huymaster.textguardian.server.api.v1.ConversationRoute
 import com.github.huymaster.textguardian.server.api.v1.UserRoute
+import com.github.huymaster.textguardian.server.data.repository.MessageRepository
+import com.github.huymaster.textguardian.server.data.repository.RepositoryResult
+import com.github.huymaster.textguardian.server.data.repository.UserRepository
+import com.github.huymaster.textguardian.server.data.repository.UserTokenRepository
+import com.github.huymaster.textguardian.server.net.ALGORITHM
+import com.github.huymaster.textguardian.server.net.REFRESH_TOKEN_CLAIM
+import com.github.huymaster.textguardian.server.net.USER_ID_CLAIM
 import io.ktor.server.html.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.websocket.*
+import io.ktor.websocket.*
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.html.*
+import org.koin.core.component.inject
+import org.ktorm.dsl.eq
+import java.util.*
 
 object APIVersion1 : BaseAPI(1) {
     override fun Route.register() {
@@ -96,7 +111,56 @@ object APIVersion1 : BaseAPI(1) {
     private fun Route.chatRoute() {
         protect {
             post("/message/{conversationId}") { ChatRoute.sendMessage(call) }
+            get("/message/{conversationId}/{messageId}") { ChatRoute.getMessage(call) }
             get("/message/{conversationId}") { ChatRoute.getMessages(call) }
+            get("/message/{conversationId}/latest") { ChatRoute.getLatestMessages(call) }
         }
+        webSocket("/message/{conversationId}") {
+            send(Frame.Text(WebSocketMsg.HANDSHAKE))
+
+            val tokenFrame = withTimeoutOrNull(5000) { incoming.receive() }
+            val token = (tokenFrame as? Frame.Text)?.readText()
+
+            if (token == null || !checkToken(token)) {
+                close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "Invalid Token"))
+                return@webSocket
+            }
+
+            val conversationId = call.parameters["conversationId"]
+            if (conversationId.isNullOrBlank()) {
+                close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "Missing ID"))
+                return@webSocket
+            }
+
+            try {
+                val repo: MessageRepository by inject()
+                repo.newMsgFlow.collect { msgConvId ->
+                    if (msgConvId == conversationId) {
+                        send(Frame.Text(WebSocketMsg.NEW_MESSAGE))
+                    }
+                }
+            } catch (e: Exception) {
+            } finally {
+            }
+        }
+    }
+
+    private suspend fun checkToken(token: String): Boolean {
+        val o = JWT.require(ALGORITHM).build().verify(token)
+        val userId = runCatching {
+            UUID.fromString(o.getClaim(USER_ID_CLAIM)?.asString())
+        }.getOrNull() ?: return false
+        val refreshToken = runCatching {
+            o.getClaim(REFRESH_TOKEN_CLAIM)?.asString()
+        }.getOrNull() ?: return false
+
+        val uRep by inject<UserRepository>()
+        val tRep by inject<UserTokenRepository>()
+
+        val userExists = uRep.exists { e -> e.userId eq userId }
+        if (!userExists) return false
+
+        val tokenResult = tRep.checkToken(refreshToken)
+        return tokenResult !is RepositoryResult.Error
     }
 }

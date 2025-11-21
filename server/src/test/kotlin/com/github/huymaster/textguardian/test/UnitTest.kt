@@ -37,11 +37,10 @@ class UnitTest : KoinTest {
     suspend fun test_1() {
         val keyP = get<KeyPair>()
         val key = "fn1bOGGgiRwARUKVI0OzUUnw3r8MC8csU/VjwdomNMfv3qJLF75YKD1+XI7WsYK690DDFqlWXjvQRzoEirpYgw=="
-        val api = createService(APIVersion1Service::class.java)
+        val api = createService(APIVersion1Service::class.java, "http://localhost:8080")
         val at = api.refresh(key).body() ?: fail { "Can't get access token" }
-        val me = api.getUserInfo(at.accessToken).body() ?: fail { "Failed to get user info" }
-        val keys = api.getPublicKeys(me.userId.toString()).body()
-        println(keys)
+        val messages = api.getMessages(at.accessToken, "bb999bf0-5bef-4459-87d7-291603c38e86", null)
+        println(messages)
     }
 
     @Test

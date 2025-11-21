@@ -32,6 +32,8 @@
 -dontwarn kotlin.Unit
 -dontwarn retrofit2.KotlinExtensions
 -dontwarn reactor.blockhound.integration.BlockHoundIntegration
+-dontwarn java.lang.management.ManagementFactory
+-dontwarn java.lang.management.RuntimeMXBean
 -dontwarn retrofit2.KotlinExtensions$*
 -if interface * { @retrofit2.http.* <methods>; }
 -keep,allowobfuscation interface <1>

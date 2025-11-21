@@ -34,4 +34,17 @@ class MessageRepository(
                 })"
             )
     }
+
+    suspend fun getLastestMessages(conversationId: String, since: String? = null): RepositoryResult<List<Message>> {
+        val token = tokenManager.getAccessToken() ?: return RepositoryResult.Error(message = "Invalid token.")
+        val response = service.getLastestMessages(token, conversationId, since)
+        return if (response.isSuccessful)
+            RepositoryResult.Success(response.body())
+        else
+            RepositoryResult.Error(
+                message = "Failed to get messages (${
+                    response.errorBody()?.string() ?: "unknown error"
+                })"
+            )
+    }
 }

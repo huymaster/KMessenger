@@ -27,6 +27,7 @@ object Module {
         single { ConversationRepository(get(), get()) }
         single { UserRepository(get(), get()) }
         single { CipherRepository(get(), get(), get()) }
+        single { MessageRepository(get(), get()) }
     }
     val viewModel = module {
         viewModelOf(::InitViewModel)

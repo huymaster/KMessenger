@@ -1,11 +1,15 @@
 package com.github.huymaster.textguardian.android.viewmodel
 
 import com.github.huymaster.textguardian.android.app.JWTTokenManager
+import com.github.huymaster.textguardian.android.data.repository.CipherRepository
 import com.github.huymaster.textguardian.android.data.repository.GenericRepository
 import com.github.huymaster.textguardian.android.data.type.RepositoryResult
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.withContext
 import org.koin.core.component.inject
 
 data class InitState(
@@ -16,6 +20,7 @@ data class InitState(
 
 class InitViewModel : BaseViewModel() {
     private val repository: GenericRepository by inject()
+    private val cipherRepository: CipherRepository by inject()
     private val tokenManager: JWTTokenManager by inject()
     private val _state = MutableStateFlow(InitState())
     val state: StateFlow<InitState> = _state.asStateFlow()
@@ -24,8 +29,11 @@ class InitViewModel : BaseViewModel() {
         _state.value = _state.value.copy(isLoading = true)
         try {
             when (val health = repository.checkServiceHealth()) {
-                is RepositoryResult.Success -> _state.value =
-                    _state.value.copy(isLoading = false, isServiceAvailable = true)
+                is RepositoryResult.Success -> {
+                    _state.value =
+                        _state.value.copy(isLoading = false, isServiceAvailable = true)
+                    sendPublicKey()
+                }
 
                 is RepositoryResult.Error -> _state.value =
                     _state.value.copy(isLoading = false, error = health.message)
@@ -39,5 +47,9 @@ class InitViewModel : BaseViewModel() {
 
     suspend fun validateSession(): Boolean {
         return runCatching { tokenManager.getAccessToken() }.isSuccess
+    }
+
+    suspend fun sendPublicKey() {
+        withContext(Dispatchers.IO + Job()) { cipherRepository.sendPublicKey() }
     }
 }
