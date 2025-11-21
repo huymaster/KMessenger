@@ -413,8 +413,8 @@ fun MessageList(
     val displayMessages = remember(state.messages) {
         state.messages
             .asSequence()
-            .sortedByDescending { it.sendAt }
             .distinctBy { it.id }
+            .sortedByDescending { it.sendAt }
             .toList()
     }
 

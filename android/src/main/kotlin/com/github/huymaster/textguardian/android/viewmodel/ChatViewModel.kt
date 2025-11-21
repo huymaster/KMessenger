@@ -85,8 +85,6 @@ class ChatViewModel : BaseViewModel() {
             _state.update { currentState ->
                 val combined = (currentState.messages + newFetchedMessages)
                     .distinctBy { it.id }
-                    .sortedByDescending { it.sendAt }
-
                 currentState.copy(messages = combined)
             }
         } else {
@@ -138,9 +136,7 @@ class ChatViewModel : BaseViewModel() {
         if (msgResult is RepositoryResult.Success) {
             val msg = msgResult.data!!
             val apiResult = messageRepository.sendMessage(conversationId, msg)
-            if (apiResult is RepositoryResult.Success) {
-                _state.update { it.copy(messages = it.messages + msg) }
-            } else {
+            if (apiResult !is RepositoryResult.Success) {
                 _state.update { it.copy(error = apiResult.message) }
             }
         } else {
