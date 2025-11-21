@@ -6,7 +6,6 @@
 package com.github.huymaster.textguardian.android.ui.screen
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.animation.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
@@ -43,16 +42,10 @@ import com.github.huymaster.textguardian.android.viewmodel.ChatState
 import com.github.huymaster.textguardian.android.viewmodel.ChatViewModel
 import com.github.huymaster.textguardian.core.api.type.ConversationInfo
 import com.github.huymaster.textguardian.core.api.type.Message
-import com.github.huymaster.textguardian.core.api.type.WebSocketMsg
-import io.ktor.client.*
-import io.ktor.client.engine.okhttp.*
-import io.ktor.client.plugins.websocket.*
-import io.ktor.websocket.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.internal.closeQuietly
 import org.koin.compose.koinInject
 import java.util.*
 
@@ -66,35 +59,13 @@ fun ChatScreen(
     val scope = rememberCoroutineScope { Dispatchers.IO }
     val state by model.state.collectAsStateWithLifecycle()
     LaunchedEffect(conversationId) {
-        if (conversationId != null)
-            model.setConversation(conversationId)
-    }
-    DisposableEffect(Unit) {
         if (conversationId != null) {
-            val client = HttpClient(OkHttp) { install(WebSockets) }
-            try {
-                scope.launch {
-                    client.webSocket(
-                        urlString = "wss://api-textguardian.ddns.net/api/v1/message/${conversationId}",
-                    ) {
-                        val handshakeFrame = incoming.receive() as? Frame.Text
-                        if (handshakeFrame?.readText() != WebSocketMsg.HANDSHAKE) {
-                            close()
-                            return@webSocket
-                        }
-                        model.processHandshake(this)
-                        for (frame in incoming)
-                            if (frame is Frame.Text)
-                                if (frame.readText() == WebSocketMsg.NEW_MESSAGE)
-                                    model.getLastestMessages()
-                    }
-                }
-            } catch (e: Exception) {
-                Log.w("Chat", "Can't connect to ws server. ${e.message}")
-            }
-            onDispose { client.closeQuietly() }
-        } else onDispose { }
+            model.setConversation(conversationId)
+            model.connectToChatSocket(conversationId)
+        }
     }
+    LaunchedEffect(Unit) { model.getLastestMessages() }
+    DisposableEffect(Unit) { onDispose { model.disconnectSocket() } }
     ChatScreenContent(
         transitionBundle = transitionBundle,
         navController = navController,
@@ -420,6 +391,15 @@ fun MessageList(
 
     LaunchedEffect(Unit) {
         if (state.messages.isEmpty()) messageLoadRequest(null)
+    }
+
+    LaunchedEffect(displayMessages.size) {
+        val firstVisible = lazyListState.firstVisibleItemIndex
+        val firstOffset = lazyListState.firstVisibleItemScrollOffset
+        val isAtBottom = firstVisible == 0 && firstOffset <= 0
+        println(isAtBottom)
+        if (displayMessages.isNotEmpty() && isAtBottom)
+            lazyListState.animateScrollToItem(0)
     }
 
     LazyColumn(

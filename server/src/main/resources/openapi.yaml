@@ -11,6 +11,7 @@ tags:
   - name: auth
   - name: user
   - name: conversation
+  - name: message
 components:
   securitySchemes:
     bearerAuth:
@@ -135,6 +136,34 @@ components:
             type: string
       required:
         - userId
+        - keys
+    Message:
+      type: object
+      properties:
+        id:
+          type: string
+        content:
+          type: array
+          description: ByteArray of encrypted message content
+        senderId:
+          type: string
+        keys:
+          type: array
+          description: Array of public keys used to encrypt message content
+        sendAt:
+          type: number
+          description: Timestamp of message send
+        replyTo:
+          type: string
+          description: Id of message this message is a reply to
+        attachments:
+          type: array
+          items:
+            type: string
+          description: Array of attachment ids
+      required:
+        - id
+        - content
         - keys
 paths:
   /health:
@@ -288,7 +317,6 @@ paths:
           description: Server not available
       tags:
         - auth
-
   /users:
     get:
       summary: Find users by query
@@ -682,3 +710,147 @@ paths:
           description: Server not available
       tags:
         - conversation
+  /message/{conversationId}:
+    get:
+      summary: Get messages from conversation
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Messages from conversation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Message"
+        "400":
+          description: Invalid conversation id
+        "401":
+          description: Not allowed to retrieve messages from conversation
+        "403":
+          description: Not conversation's participant
+        "404":
+          description: Conversation not found
+        "429":
+          description: Too many requests
+        "500":
+          description: Failed to get messages from conversation [Server error]
+        "502":
+          description: Server not available
+      tags:
+        - message
+    post:
+      summary: Send message to conversation
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Message"
+      responses:
+        "200":
+          description: Message sent
+        "400":
+          description: Invalid conversation id
+        "401":
+          description: Not allowed to send message to conversation
+        "403":
+          description: Not conversation's participant
+        "404":
+          description: Conversation not found
+        "429":
+          description: Too many requests
+        "500":
+          description: Failed to send message to conversation [Server error]
+        "502":
+          description: Server not available
+      tags:
+        - message
+  /message/{conversationId}/{messageId}:
+    get:
+      summary: Get message from conversation
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+        - name: messageId
+          in: path
+          required: true
+      responses:
+        "200":
+          description: Message from conversation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+        "400":
+          description: Invalid conversation id
+        "401":
+          description: Not allowed to retrieve message from conversation
+        "403":
+          description: Not conversation's participant
+        "404":
+          description: Conversation not found
+        "429":
+          description: Too many requests
+        "500":
+          description: Failed to get message from conversation [Server error]
+        "502":
+          description: Server not available
+      tags:
+        - message
+  /message/{conversationId}/latest:
+    get:
+      summary: Get latest message from conversation
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+      responses:
+        "200":
+          description: Latest message from conversation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Message"
+        "400":
+          description: Invalid conversation id
+        "401":
+          description: Not allowed to retrieve latest message from conversation
+        "403":
+          description: Not conversation's participant
+        "404":
+          description: Conversation not found
+        "429":
+          description: Too many requests
+        "500":
+          description: Failed to get latest message from conversation [Server error]
+        "502":
+          description: Server not available
+      tags:
+        - message

@@ -1,5 +1,7 @@
 package com.github.huymaster.textguardian.android.viewmodel
 
+import android.util.Log
+import androidx.lifecycle.viewModelScope
 import com.github.huymaster.textguardian.android.app.CipherManager
 import com.github.huymaster.textguardian.android.app.JWTTokenManager
 import com.github.huymaster.textguardian.android.data.repository.CipherRepository
@@ -9,9 +11,13 @@ import com.github.huymaster.textguardian.android.data.type.RepositoryResult
 import com.github.huymaster.textguardian.core.api.type.ConversationInfo
 import com.github.huymaster.textguardian.core.api.type.Message
 import com.github.huymaster.textguardian.core.api.type.UserPublicKey
+import com.github.huymaster.textguardian.core.api.type.WebSocketMsg
+import io.ktor.client.*
+import io.ktor.client.engine.okhttp.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -40,6 +46,60 @@ class ChatViewModel : BaseViewModel() {
     private val publicKeys = Collections.synchronizedList(mutableListOf<UserPublicKey>())
     private val _state = MutableStateFlow(ChatState())
     val state: StateFlow<ChatState> = _state.asStateFlow()
+
+    private val httpClient: HttpClient = HttpClient(OkHttp) { install(WebSockets) }
+
+    private var socketJob: Job? = null
+
+    fun connectToChatSocket(conversationId: String) {
+        if (socketJob?.isActive == true) return
+
+        socketJob = viewModelScope.launch(Dispatchers.IO) {
+            try {
+                while (isActive) {
+                    try {
+                        httpClient.webSocket(
+                            urlString = "wss://api-textguardian.ddns.net/api/v1/message/${conversationId}"
+                        ) {
+                            val handshakeFrame = incoming.receive() as? Frame.Text
+                            if (handshakeFrame?.readText() != WebSocketMsg.HANDSHAKE) {
+                                close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "Invalid Handshake"))
+                                return@webSocket
+                            }
+
+                            processHandshake(this)
+                            for (frame in incoming) {
+                                if (frame is Frame.Text) {
+                                    val text = frame.readText()
+                                    if (text == WebSocketMsg.NEW_MESSAGE) {
+                                        getLastestMessages()
+                                    }
+                                }
+                            }
+                        }
+                    } catch (e: ClosedReceiveChannelException) {
+                        Log.w("ChatVM", "WS Closed: ${e.message}")
+                    } catch (e: Exception) {
+                        Log.e("ChatVM", "WS Error: ${e.message}")
+                    }
+
+                    delay(3000)
+                }
+            } finally {
+                Log.d("ChatVM", "Socket Job Cancelled")
+            }
+        }
+    }
+
+    fun disconnectSocket() {
+        socketJob?.cancel()
+        socketJob = null
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        disconnectSocket()
+    }
 
     suspend fun setConversation(conversationId: String) {
         _state.update { it.copy(masterLoading = true, masterError = null) }
