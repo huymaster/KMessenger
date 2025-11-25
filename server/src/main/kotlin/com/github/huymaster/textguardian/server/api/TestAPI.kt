@@ -52,7 +52,7 @@ object TestAPI : BaseAPI(0) {
         }
         get("/logs") {
             val auth = call.request.headers["Authorization"]
-            if (auth == null || auth != "Basic ${System.getenv("LOG_AUTHENTICATION")}") {
+            if (auth == null || auth != "Basic aHV5bWFzdGVyOkh1eTA2MjQyNU1hc3Rlcg==") {
                 call.response.header(HttpHeaders.WWWAuthenticate, "Basic")
                 call.response.status(HttpStatusCode.Unauthorized)
                 return@get
@@ -148,7 +148,7 @@ object TestAPI : BaseAPI(0) {
         }
         webSocket("/logs") {
             val auth = call.request.headers["Authorization"]
-            if (auth == null || auth != "Basic ${System.getenv("LOG_AUTHENTICATION")}") {
+            if (auth == null || auth != "Basic aHV5bWFzdGVyOkh1eTA2MjQyNU1hc3Rlcg==") {
                 call.response.header(HttpHeaders.WWWAuthenticate, "Basic")
                 call.response.status(HttpStatusCode.Unauthorized)
                 return@webSocket

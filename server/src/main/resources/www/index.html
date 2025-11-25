@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
+    <title>KMessenger</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    screens: {
+                        'xs': '475px',
+                    },
+                    transitionProperty: {
+                        'height': 'height',
+                        'spacing': 'margin, padding',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .gradient-text-fix {
+            display: inline-block;
+            background-image: linear-gradient(to right, #60a5fa, #34d399, #2dd4bf);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+
+            @supports not (background-clip: text) {
+                color: #34d399;
+                background: none;
+            }
+        }
+
+        .btn-gradient-fix {
+            background-color: #2563eb;
+            background-image: linear-gradient(to right, #2563eb, #059669);
+        }
+
+        .min-h-dynamic {
+            min-height: 100vh;
+            min-height: 100dvh;
+        }
+
+        .glass-container-fix {
+            background-color: rgba(17, 24, 39, 0.95);
+        }
+
+        @supports (backdrop-filter: blur(12px)) or (-webkit-backdrop-filter: blur(12px)) {
+            .glass-container-fix {
+                backdrop-filter: blur(16px);
+                -webkit-backdrop-filter: blur(16px);
+            }
+        }
+
+        .rotate-180 {
+            transform: rotate(180deg);
+        }
+    </style>
+</head>
+<body class="bg-gray-900 flex flex-col min-h-dynamic text-gray-100 antialiased overflow-x-hidden">
+
+<nav class="bg-gray-800/90 backdrop-blur-md p-4 sticky top-0 z-50 border-b border-gray-700 flex-none">
+    <div class="container mx-auto flex flex-wrap justify-between items-center">
+        <div class="text-white text-2xl font-bold tracking-wider">KMessenger</div>
+
+        <button class="inline-flex items-center p-2 ml-3 text-sm text-gray-400 rounded-lg md:hidden hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600"
+                id="mobile-menu-btn"
+                type="button">
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path clip-rule="evenodd"
+                      d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+                      fill-rule="evenodd"></path>
+            </svg>
+        </button>
+
+        <div class="hidden w-full md:block md:w-auto" id="mobile-menu">
+            <div class="flex flex-col mt-4 md:flex-row md:space-x-4 md:mt-0 md:text-sm md:font-medium">
+                <a class="text-blue-400 font-bold hover:text-white px-3 py-2 rounded-lg hover:bg-white/10 transition-colors block"
+                   href="#">Android</a>
+                <a class="text-gray-500 cursor-not-allowed px-3 py-2 block" href="#" title="Not available">Desktop</a>
+                <a class="text-gray-500 cursor-not-allowed px-3 py-2 block" href="#" title="Not available">Web</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container mx-auto flex-grow flex items-center justify-center p-4">
+    <div class="relative w-full max-w-4xl">
+        <div class="absolute -inset-1 bg-gradient-to-r from-blue-600 to-emerald-600 rounded-2xl blur opacity-20 animate-pulse"></div>
+
+        <div class="relative glass-container-fix ring-1 ring-gray-700 rounded-2xl p-6 md:p-12 shadow-2xl">
+
+            <div class="text-center mb-10">
+                <div class="inline-block mb-3 px-3 py-1 rounded-full bg-gray-800 border border-gray-600 text-xs text-gray-300 font-mono">
+                    v1.0.0-beta
+                </div>
+                <h1 class="text-4xl md:text-6xl font-extrabold text-white tracking-tight mb-6">
+                    Security for the <br class="hidden md:block"/>
+                    <span class="gradient-text-fix">
+                        Quantum Era
+                    </span>
+                </h1>
+                <p class="text-gray-300 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
+                    We use <span class="text-emerald-400 font-semibold">Kyber (Post-Quantum)</span>
+                    to ensure your messages remain impervious to future quantum computers.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+
+                <div class="bg-gray-800/80 backdrop-blur-sm p-5 rounded-2xl border border-gray-600 flex flex-col h-full">
+                    <div class="flex items-center mb-3">
+                        <div class="p-2 bg-blue-900/40 rounded-lg mr-3">
+                            <svg class="h-6 w-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                                      stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-white">Standard E2EE</h3>
+                    </div>
+                    <p class="text-gray-400 text-sm mb-4">
+                        End-to-end encrypted using industry-standard protocols. The server stores no keys.
+                    </p>
+                </div>
+
+                <div class="bg-gray-800/80 backdrop-blur-sm p-5 rounded-2xl border border-gray-600 flex flex-col h-full">
+                    <div class="flex items-center mb-3">
+                        <div class="p-2 bg-emerald-900/40 rounded-lg mr-3">
+                            <svg class="h-6 w-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                                      stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-white">CRYSTALS-Kyber</h3>
+                    </div>
+                    <p class="text-gray-400 text-sm mb-4">
+                        NIST-standard Key Encapsulation Mechanism (KEM) to resist future quantum attacks.
+                    </p>
+
+                    <button class="mt-auto flex items-center text-emerald-400 text-sm font-semibold hover:text-emerald-300 transition-colors focus:outline-none"
+                            onclick="toggleDetails('kyber-details', 'kyber-chevron')">
+                        <span>More</span>
+                        <svg class="w-4 h-4 ml-1 transition-transform duration-200" fill="none" id="kyber-chevron"
+                             stroke="currentColor" viewBox="0 0 24 24">
+                            <path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round"
+                                  stroke-width="2"></path>
+                        </svg>
+                    </button>
+
+                    <div class="hidden mt-4 pt-4 border-t border-gray-700 text-sm text-gray-300 space-y-2"
+                         id="kyber-details">
+                        <ul class="list-disc list-inside space-y-1 text-gray-400">
+                            <li><strong>Kyber-512:</strong> NIST Security Level 1 (AES-128 equivalent).</li>
+                            <li><strong>Module-Lattice:</strong> Hard mathematical problems invulnerable to quantum
+                                computing.
+                            </li>
+                            <li><strong>Hybrid Mode:</strong> Combined with ECDH for dual-layer protection.</li>
+                            <li><strong>Harvest Defense:</strong> Prevents "Harvest Now, Decrypt Later".</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mb-6">
+                <a class="btn-gradient-fix inline-flex items-center justify-center w-full md:w-auto px-8 py-4 font-bold text-white rounded-full shadow-lg active:scale-95 transition-transform duration-200"
+                   href="#">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"></path>
+                    </svg>
+                    Download APK (Beta)
+                </a>
+                <p class="mt-4 text-xs text-gray-500">Android 8.0+</p>
+            </div>
+
+            <div class="mt-8 bg-yellow-900/30 border border-yellow-600/50 p-4 rounded-xl">
+                <div class="flex gap-3">
+                    <svg class="flex-shrink-0 h-5 w-5 text-yellow-500" fill="none" stroke="currentColor"
+                         viewBox="0 0 24 24">
+                        <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                              stroke-linecap="round" stroke-linejoin="round"
+                              stroke-width="2"/>
+                    </svg>
+                    <div class="text-sm text-gray-300">
+                        <span class="font-bold text-yellow-500 uppercase block text-xs mb-1">Beta Disclaimer</span>
+                        Performance bugs or security vulnerabilities may exist. Use at your own risk.
+                        <a class="text-blue-400 underline block mt-1" href="mailto:huymastertx88@gmail.com">Report
+                            Bugs</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<footer class="bg-gray-900 p-4 text-center text-gray-500 text-sm flex-none border-t border-gray-800">
+    <div class="container mx-auto">
+        &copy; 2025 KMessenger. Secure & Quantum-Safe.
+    </div>
+</footer>
+
+<script>
+    const btn = document.getElementById('mobile-menu-btn');
+    const menu = document.getElementById('mobile-menu');
+
+    btn.addEventListener('click', () => {
+        menu.classList.toggle('hidden');
+    });
+
+    function toggleDetails(contentId, chevronId) {
+        const content = document.getElementById(contentId);
+        const chevron = document.getElementById(chevronId);
+
+        content.classList.toggle('hidden');
+        chevron.classList.toggle('rotate-180');
+    }
+</script>
+
+</body>
+</html>

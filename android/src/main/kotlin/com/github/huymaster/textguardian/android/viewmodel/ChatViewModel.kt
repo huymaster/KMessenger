@@ -101,6 +101,10 @@ class ChatViewModel : BaseViewModel() {
         disconnectSocket()
     }
 
+    suspend fun clearNewMessages() {
+        _state.update { it.copy(newMessages = 0) }
+    }
+
     suspend fun setConversation(conversationId: String) {
         _state.update { it.copy(masterLoading = true, masterError = null) }
 
@@ -164,7 +168,7 @@ class ChatViewModel : BaseViewModel() {
             if (incomingMessages.isNotEmpty()) {
                 _state.update { currentState ->
                     currentState.copy(
-                        newMessages = incomingMessages.size,
+                        newMessages = currentState.newMessages + incomingMessages.size,
                         messages = (currentState.messages + incomingMessages).distinctBy { it.id }
                     )
                 }
@@ -173,14 +177,17 @@ class ChatViewModel : BaseViewModel() {
     }
 
     suspend fun sendMessage(message: String, replyTo: String? = null) {
+        if (message.isBlank()) return
         val conversationId = _state.value.conversationInfo?.conversationId ?: return
         _state.update { it.copy(messageSending = true, error = null) }
+        val normalMessage = message.trimIndent().trim()
+            .replace(Regex("\\s+"), " ")
 
         val msgResult = withContext(Dispatchers.IO) {
             try {
                 val keysToUse = synchronized(publicKeys) { publicKeys.toList() }
                 val (secret, list) = cipherManager.encapsulation(keysToUse.map { it.public })
-                val cipher = cipherManager.encrypt(message, secret)
+                val cipher = cipherManager.encrypt(normalMessage, secret)
 
                 val msg = Message(
                     id = UUID.randomUUID(),

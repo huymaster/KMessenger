@@ -114,7 +114,13 @@ object UserRoute : SubRoute() {
             call.sendErrorResponse("Invalid user id")
             return
         }
-        val rr = publicKey.getPublicKeys(UUID.fromString(userId))
+        val id = runCatching {
+            UUID.fromString(userId)
+        }.onFailure {
+            call.sendErrorResponse("Invalid id", it)
+            return
+        }
+        val rr = publicKey.getPublicKeys(id.getOrNull()!!)
         if ((rr is RepositoryResult.Error) || ((rr as RepositoryResult.Success<*>).data !is UserPublicKeys)) {
             call.sendErrorResponse(rr)
             return
