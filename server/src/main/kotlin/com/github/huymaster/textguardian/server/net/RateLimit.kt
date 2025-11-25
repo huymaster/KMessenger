@@ -8,7 +8,7 @@ fun Application.configureRateLimit() {
     install(RateLimit) {
         global {
             rateLimiter(
-                limit = 10,
+                limit = 100,
                 refillPeriod = 1.seconds,
                 initialSize = 0
             )

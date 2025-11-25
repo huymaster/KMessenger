@@ -7,11 +7,9 @@ import com.github.huymaster.textguardian.android.app.JWTTokenManager
 import com.github.huymaster.textguardian.android.data.repository.CipherRepository
 import com.github.huymaster.textguardian.android.data.repository.ConversationRepository
 import com.github.huymaster.textguardian.android.data.repository.MessageRepository
+import com.github.huymaster.textguardian.android.data.repository.UserRepository
 import com.github.huymaster.textguardian.android.data.type.RepositoryResult
-import com.github.huymaster.textguardian.core.api.type.ConversationInfo
-import com.github.huymaster.textguardian.core.api.type.Message
-import com.github.huymaster.textguardian.core.api.type.UserPublicKey
-import com.github.huymaster.textguardian.core.api.type.WebSocketMsg
+import com.github.huymaster.textguardian.core.api.type.*
 import io.ktor.client.*
 import io.ktor.client.engine.okhttp.*
 import io.ktor.client.plugins.websocket.*
@@ -26,6 +24,7 @@ import org.koin.core.component.get
 import java.util.*
 
 data class ChatState(
+    val self: UUID = UUID.randomUUID(),
     val conversationInfo: ConversationInfo? = null,
     val messages: List<Message> = emptyList(),
     val masterLoading: Boolean = false,
@@ -39,12 +38,14 @@ data class ChatState(
 
 class ChatViewModel : BaseViewModel() {
     private val tokenManager: JWTTokenManager = get()
+    private val userRepository: UserRepository = get()
     private val messageRepository: MessageRepository = get()
     private val conversationRepository: ConversationRepository = get()
     private val cipherRepository: CipherRepository = get()
     private val cipherManager: CipherManager = get()
     private val publicKeys = Collections.synchronizedList(mutableListOf<UserPublicKey>())
     private val _state = MutableStateFlow(ChatState())
+    private val cacheUserInfo = Collections.synchronizedMap(mutableMapOf<UUID, UserInfo>())
     val state: StateFlow<ChatState> = _state.asStateFlow()
 
     private val httpClient: HttpClient = HttpClient(OkHttp) { install(WebSockets) }
@@ -115,6 +116,12 @@ class ChatViewModel : BaseViewModel() {
         }
 
         _state.update { it.copy(conversationInfo = infoResult.data) }
+        val selfQuery = userRepository.getUserInfo(null)
+        if (selfQuery is RepositoryResult.Success) {
+            _state.update { it.copy(self = selfQuery.data?.userId!!) }
+        } else {
+            _state.update { it.copy(masterLoading = false, masterError = selfQuery.message) }
+        }
 
         val partsResult = conversationRepository.getParticipants(conversationId)
         if (partsResult is RepositoryResult.Success) {
@@ -135,6 +142,18 @@ class ChatViewModel : BaseViewModel() {
         }
 
         _state.update { it.copy(masterLoading = false) }
+    }
+
+    suspend fun getUserInfo(id: UUID?): UserInfo? {
+        if (id == null) return null
+        if (cacheUserInfo.containsKey(id)) return cacheUserInfo[id]
+        val result = userRepository.getUserInfo(id)
+        if (result is RepositoryResult.Success) {
+            val user = result.data ?: return null
+            cacheUserInfo[id] = user
+            return user
+        }
+        return null
     }
 
     suspend fun getMessages(startMessageId: String? = null) {
@@ -179,35 +198,47 @@ class ChatViewModel : BaseViewModel() {
     suspend fun sendMessage(message: String, replyTo: String? = null) {
         if (message.isBlank()) return
         val conversationId = _state.value.conversationInfo?.conversationId ?: return
+
         _state.update { it.copy(messageSending = true, error = null) }
-        val normalMessage = message.trimIndent().trim()
-            .replace(Regex("\\s+"), " ")
 
-        val msgResult = withContext(Dispatchers.IO) {
-            try {
-                val keysToUse = synchronized(publicKeys) { publicKeys.toList() }
-                val (secret, list) = cipherManager.encapsulation(keysToUse.map { it.public })
-                val cipher = cipherManager.encrypt(normalMessage, secret)
+        withContext(Dispatchers.IO) {
+            val normalMessage = message.trimIndent().trim().replace(Regex("\\s+"), " ")
+            val wordChunks = normalMessage.split(" ").chunked(60)
 
-                val msg = Message(
-                    id = UUID.randomUUID(),
-                    content = cipher,
-                    sessionKeys = list.toTypedArray(),
-                    replyTo = runCatching { UUID.fromString(replyTo) }.getOrNull()
-                )
-                RepositoryResult.Success(msg)
-            } catch (e: Exception) {
-                RepositoryResult.Error(message = e.message ?: "Encryption failed")
+            val keysToUse = synchronized(publicKeys) { publicKeys.toList() }
+            val publicKeysOnly = keysToUse.map { it.public }
+
+            for (chunkWords in wordChunks) {
+                val chunkContent = chunkWords.joinToString(" ")
+
+                val msgResult = try {
+                    val (secret, list) = cipherManager.encapsulation(publicKeysOnly)
+                    val cipher = cipherManager.encrypt(chunkContent, secret)
+
+                    val msg = Message(
+                        id = UUID.randomUUID(),
+                        content = cipher,
+                        sessionKeys = list.toTypedArray(),
+                        replyTo = runCatching { UUID.fromString(replyTo) }.getOrNull()
+                    )
+                    RepositoryResult.Success(msg)
+                } catch (e: Exception) {
+                    RepositoryResult.Error(message = e.message ?: "Encryption failed")
+                }
+
+                if (msgResult is RepositoryResult.Success) {
+                    val msg = msgResult.data!!
+                    val apiResult = messageRepository.sendMessage(conversationId, msg)
+
+                    if (apiResult !is RepositoryResult.Success) {
+                        _state.update { it.copy(error = apiResult.message) }
+                        break
+                    }
+                } else {
+                    _state.update { it.copy(error = msgResult.message) }
+                    break
+                }
             }
-        }
-        if (msgResult is RepositoryResult.Success) {
-            val msg = msgResult.data!!
-            val apiResult = messageRepository.sendMessage(conversationId, msg)
-            if (apiResult !is RepositoryResult.Success) {
-                _state.update { it.copy(error = apiResult.message) }
-            }
-        } else {
-            _state.update { it.copy(error = msgResult.message) }
         }
 
         _state.update { it.copy(messageSending = false) }

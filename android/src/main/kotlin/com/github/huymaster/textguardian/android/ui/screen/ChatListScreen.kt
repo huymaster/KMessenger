@@ -81,7 +81,7 @@ private fun ChatListScreenContent(
     val snackbarHostState by remember { mutableStateOf(SnackbarHostState()) }
 
     LaunchedEffect(state.error) {
-        if (state.error != null)
+        if (state.error?.isNotEmpty() == true)
             snackbarHostState.showSnackbar(state.error)
         else
             snackbarHostState.currentSnackbarData?.dismiss()

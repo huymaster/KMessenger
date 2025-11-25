@@ -3,7 +3,9 @@ package com.github.huymaster.textguardian.android.viewmodel
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.github.huymaster.textguardian.android.app.CipherManager
 import com.github.huymaster.textguardian.android.data.repository.AuthenticationRepository
+import com.github.huymaster.textguardian.android.data.repository.CipherRepository
 import com.github.huymaster.textguardian.android.data.type.RepositoryResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,6 +22,8 @@ data class LoginState(
 
 class LoginViewModel : BaseViewModel() {
     private val repository: AuthenticationRepository by inject()
+    private val cRepository: CipherRepository by inject()
+    private val manager: CipherManager by inject()
     private val _state = MutableStateFlow(LoginState())
     val state: StateFlow<LoginState> = _state.asStateFlow()
 
@@ -68,6 +72,9 @@ class LoginViewModel : BaseViewModel() {
         when (val result = repository.login(phone, password)) {
             is RepositoryResult.Success -> {
                 resetState()
+                manager.generateNewKeyPair()
+                cRepository.sendPublicKey()
+
                 _state.value = _state.value.copy(isLoading = false, isSuccess = true, message = result.message)
             }
 

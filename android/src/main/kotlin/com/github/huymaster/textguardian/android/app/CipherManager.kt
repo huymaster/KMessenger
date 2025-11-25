@@ -34,18 +34,16 @@ class CipherManager(
                 privateKey = prk
                 publicKey = puk
             } else {
-                Files.deleteIfExists(privateKeyFile.toPath())
-                Files.deleteIfExists(publicKeyFile.toPath())
                 generateNewKeyPair()
             }
         } else {
-            Files.deleteIfExists(privateKeyFile.toPath())
-            Files.deleteIfExists(publicKeyFile.toPath())
             generateNewKeyPair()
         }
     }
 
-    private fun generateNewKeyPair() {
+    fun generateNewKeyPair() {
+        Files.deleteIfExists(privateKeyFile.toPath())
+        Files.deleteIfExists(publicKeyFile.toPath())
         val keyPair = get<KeyPair>()
         privateKey = keyPair.private
         publicKey = keyPair.public

@@ -9,6 +9,7 @@ import android.annotation.SuppressLint
 import androidx.compose.animation.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -25,8 +26,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -45,8 +44,8 @@ import com.github.huymaster.textguardian.android.viewmodel.ChatState
 import com.github.huymaster.textguardian.android.viewmodel.ChatViewModel
 import com.github.huymaster.textguardian.core.api.type.ConversationInfo
 import com.github.huymaster.textguardian.core.api.type.Message
+import com.github.huymaster.textguardian.core.api.type.UserInfo
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.compose.koinInject
@@ -78,6 +77,7 @@ fun ChatScreen(
         onMessageSend = { message, replyTo ->
             scope.launch { model.sendMessage(message, replyTo) }
         },
+        userQuery = { model.getUserInfo(it) },
         clearNewMessages = { scope.launch { model.clearNewMessages() } }
     )
 }
@@ -106,6 +106,7 @@ private fun ChatScreenContent(
     state: ChatState,
     messageLoadRequest: (String?) -> Unit = { _ -> },
     onMessageSend: (String, String?) -> Unit = { _, _ -> },
+    userQuery: suspend (UUID?) -> UserInfo? = { _ -> null },
     clearNewMessages: () -> Unit = { }
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
@@ -158,6 +159,7 @@ private fun ChatScreenContent(
                             state,
                             messageLoadRequest,
                             onMessageSend,
+                            userQuery,
                             clearNewMessages
                         )
 
@@ -292,6 +294,7 @@ private fun ChatContent(
     state: ChatState,
     messageLoadRequest: (String?) -> Unit,
     onMessageSend: (String, String?) -> Unit,
+    userQuery: suspend (UUID?) -> UserInfo?,
     clearNewMessages: () -> Unit
 ) {
     Column(
@@ -302,6 +305,7 @@ private fun ChatContent(
             modifier = Modifier.weight(1f),
             state = state,
             messageLoadRequest = messageLoadRequest,
+            userQuery = userQuery,
             clearNewMessages = clearNewMessages
         )
         InputBar(
@@ -320,24 +324,7 @@ private fun InputBar(
     onSend: (String) -> Unit
 ) {
     var text by remember { mutableStateOf("") }
-    val focusManager = LocalFocusManager.current
-    val density = LocalDensity.current
-    val ime = WindowInsets.ime
-    val imeAnimationTarget = WindowInsets.imeAnimationTarget
-    val isImeVisible = WindowInsets.isImeVisible
 
-    val isImeFullyVisible by remember {
-        derivedStateOf {
-            ime.getBottom(density) == imeAnimationTarget.getBottom(density) &&
-                    imeAnimationTarget.getBottom(density) > 0
-        }
-    }
-
-    LaunchedEffect(isImeVisible, isImeFullyVisible) {
-        delay(100)
-        if (!isImeVisible)
-            focusManager.clearFocus()
-    }
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -394,6 +381,7 @@ fun MessageList(
     modifier: Modifier = Modifier,
     state: ChatState,
     messageLoadRequest: (String?) -> Unit,
+    userQuery: suspend (UUID?) -> UserInfo?,
     clearNewMessages: () -> Unit
 ) {
     val lazyListState = rememberLazyListState()
@@ -460,8 +448,8 @@ fun MessageList(
 
     LaunchedEffect(displayMessages.size) {
         if (displayMessages.isNotEmpty() && autoScroll) {
-            clearNewMessages()
             lazyListState.animateScrollToItem(0)
+            clearNewMessages()
         }
     }
     Box(
@@ -482,8 +470,10 @@ fun MessageList(
                 key = { message -> message.id.toString() },
                 contentType = { "message" }
             ) { message ->
-                MessageItem(
+                MessageCard(
                     message = message,
+                    state = state,
+                    userQuery = userQuery,
                     cipherManager = cipherManager
                 )
             }
@@ -500,44 +490,46 @@ fun MessageList(
             }
         }
         if (!autoScroll || state.newMessages > 0) {
-            IconButton(
-                onClick = {
-                    scope.launch {
-                        lazyListState.animateScrollToItem(0)
-                        autoScroll = true
-                    }
-                    clearNewMessages()
-                },
-                modifier = modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(12.dp)
-            ) {
-                BadgedBox(
-                    badge = {
-                        if (state.newMessages > 0) {
-                            Badge { Text(state.newMessages.toString()) }
+            BadgedBox(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .clickable(onClick = {
+                        scope.launch {
+                            lazyListState.animateScrollToItem(0)
+                            autoScroll = true
                         }
+                        clearNewMessages()
+                    }),
+                badge = {
+                    if (state.newMessages > 0) {
+                        Badge { Text(state.newMessages.toString()) }
                     }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.KeyboardArrowDown,
-                        contentDescription = "Scroll to bottom",
-                        modifier = Modifier.background(MaterialTheme.colorScheme.secondaryContainer, CircleShape)
-                    )
                 }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.KeyboardArrowDown,
+                    contentDescription = "Scroll to bottom",
+                    modifier = Modifier
+                        .background(MaterialTheme.colorScheme.secondaryContainer, CircleShape)
+                        .size(32.dp)
+                )
             }
         }
     }
 }
 
 @Composable
-private fun MessageItem(
+private fun MessageCard(
     message: Message,
+    state: ChatState,
+    userQuery: suspend (UUID?) -> UserInfo?,
     cipherManager: CipherManager
 ) {
-    val decryptedContent by produceState<DecryptionState>(
+    var retryTrigger by remember { mutableIntStateOf(0) }
+    val decryptionState by produceState<DecryptionState>(
         initialValue = DecryptionState.Loading,
-        key1 = message.id
+        key1 = message.id,
+        key2 = retryTrigger
     ) {
         value = withContext(Dispatchers.IO) {
             runCatching {
@@ -549,21 +541,65 @@ private fun MessageItem(
         }
     }
 
-    Box(modifier = Modifier.padding(horizontal = 8.dp)) {
-        when (val state = decryptedContent) {
-            is DecryptionState.Loading -> {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(20.dp),
-                    strokeWidth = 2.dp
+    val user by produceState<UserInfo?>(
+        initialValue = null,
+        key1 = message.senderId
+    ) { value = withContext(Dispatchers.IO) { userQuery(message.senderId) } }
+    val isSelf by produceState(
+        initialValue = false,
+        key1 = message.senderId,
+        key2 = state.self
+    ) { value = withContext(Dispatchers.IO) { message.senderId == state.self } }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 8.dp, end = 16.dp),
+        contentAlignment = if (isSelf) Alignment.CenterEnd else Alignment.CenterStart
+    ) {
+        Card {
+            Column(
+                modifier = Modifier.padding(8.dp),
+                horizontalAlignment = if (isSelf) Alignment.End else Alignment.Start
+            ) {
+                Text(
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    text = user?.displayName ?: user?.username ?: user?.phoneNumber ?: "<unknown>"
                 )
+                MessageContent(decryptionState = decryptionState) { retryTrigger++ }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MessageContent(
+    decryptionState: DecryptionState,
+    retry: () -> Unit
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        when (decryptionState) {
+            is DecryptionState.Error -> {
+                Text(
+                    text = "Can't decrypt message",
+                    color = MaterialTheme.colorScheme.error
+                )
+                TextButton(onClick = retry) {
+                    Text("Retry")
+                }
+            }
+
+            DecryptionState.Loading -> {
+                Text("Loading...")
+                LinearProgressIndicator()
             }
 
             is DecryptionState.Success -> {
-                Text(text = state.content)
-            }
-
-            is DecryptionState.Error -> {
-                Text(text = "Failed to decrypt: ${state.message}")
+                Text(decryptionState.content)
             }
         }
     }
