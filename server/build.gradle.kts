@@ -98,6 +98,18 @@ tasks.test {
     useJUnitPlatform()
 }
 
+val kmpModule = project(":kmp")
+val webDist = layout.buildDirectory.dir("resources/main/web")
+tasks.register<Copy>("copyKMPWeb") {
+    dependsOn(kmpModule.tasks.named("wasmJsBrowserDistribution"))
+    from(kmpModule.layout.buildDirectory.dir("dist/wasmJs/productionExecutable"))
+    into(webDist)
+}
+
+tasks.processResources {
+    dependsOn("copyKMPWeb")
+}
+
 tasks.register("deploy") {
     group = "build"
     dependsOn(tasks.jar)

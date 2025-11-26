@@ -12,7 +12,8 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.slf4j.LoggerFactory
 import java.io.File
-import java.io.InputStream
+import java.security.MessageDigest
+import java.util.concurrent.ConcurrentHashMap
 
 private val apiVersions = mutableListOf<Int>()
 private val exceptionRoot = File("exceptions")
@@ -20,24 +21,71 @@ private val classLoader = Thread.currentThread().contextClassLoader
 private val typeMap = mapOf(
     "html" to ContentType.Text.Html,
     "css" to ContentType.Text.CSS,
-    "js" to ContentType.Application.JavaScript
+    "js" to ContentType.Application.JavaScript,
+    "wasm" to ContentType.Application.Wasm,
+    "map" to ContentType.Application.Json,
+    "txt" to ContentType.Text.Plain
 )
 
 private suspend fun resourceScanner(call: ApplicationCall) {
     val path = call.request.path().removePrefix("/").removeSuffix("/")
-    val stream: InputStream? = classLoader.getResourceAsStream("www/${path}")
-    if (stream != null)
-        call.respondText(
-            contentType = typeMap[path.substringAfterLast(".")],
-            text = stream.bufferedReader().readText()
-        )
+    respondRes(call, path)
+}
+
+private val etagCache = ConcurrentHashMap<String, String>()
+private suspend fun respondRes(call: ApplicationCall, file: String) {
+    val url = object {}.javaClass.classLoader.getResource("www/${file}")
+        ?: object {}.javaClass.classLoader.getResource("web/${file}")
+
+    if (url != null) {
+        val bytes = url.readBytes()
+
+        val etag = etagCache.computeIfAbsent(file) {
+            val digest = MessageDigest.getInstance("MD5")
+            val hash = digest.digest(bytes)
+            hash.joinToString("") { "%02x".format(it) }
+        }
+
+        val incomingEtag = call.request.header(HttpHeaders.IfNoneMatch)
+        if (incomingEtag == etag || incomingEtag == "\"$etag\"") {
+            call.respond(HttpStatusCode.NotModified)
+            return
+        }
+
+        val extension = file.substringAfterLast(".", "")
+        val type = typeMap[extension] ?: ContentType.Application.OctetStream
+
+        val cacheControl = when (type) {
+            else -> "no-cache"
+        }
+
+        call.response.header(HttpHeaders.ETag, "\"$etag\"")
+        call.response.header(HttpHeaders.CacheControl, cacheControl)
+        call.response.header(HttpHeaders.ContentLength, bytes.size.toString())
+        call.respondBytes(bytes, type)
+    } else {
+        call.respond(HttpStatusCode.NotFound)
+    }
 }
 
 fun Application.configureRouting() {
     routing {
         get("/") { call.respondRedirect("/index.html") }
-        get(Regex(".*\\.(html|css|js)")) { resourceScanner(call) }
-        get("/download") {}
+        get(Regex(".*\\.(${typeMap.keys.joinToString("|")})")) {
+            resourceScanner(call)
+        }
+        get("/web") { respondRes(call, "kmp.html") }
+        get("/downloadApk") {
+            call.response.header(
+                HttpHeaders.ContentDisposition,
+                "attachment; filename=KMessenger.apk"
+            )
+            val stream = classLoader.getResourceAsStream("android-release.apk")
+            if (stream != null)
+                call.respondBytes(stream.readBytes())
+            else
+                call.respond(HttpStatusCode.NotFound)
+        }
         get("/robots.txt") {
             call.respondText(
                 """

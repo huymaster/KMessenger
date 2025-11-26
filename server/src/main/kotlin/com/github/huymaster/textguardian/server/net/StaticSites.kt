@@ -21,7 +21,7 @@ fun Application.configureStaticSites() {
     list.filter { !it.exists() }
         .forEach { it.mkdir() }
     routing {
-        get("/web") { resolveFile(call, "index.html") }
+        get("/web") { resolveFile(call, "kmp.html") }
         get("/{filename}") { resolveFile(call, call.parameters["filename"]) }
         get("/web/{filename}") { resolveFile(call, call.parameters["filename"]) }
     }

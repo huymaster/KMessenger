@@ -13,6 +13,12 @@ plugins {
 kotlin {
     jvmToolchain(17)
     jvm()
+    wasmJs {
+        browser {
+//            commonWebpackConfig { outputFileName = "composeApp.js" }
+        }
+        binaries.executable()
+    }
     sourceSets {
         commonMain.dependencies {
             implementation(compose.runtime)
