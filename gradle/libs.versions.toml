@@ -1,6 +1,6 @@
 [versions]
 kotlin = "2.2.21"
-composeHotReload = "1.0.0-rc04"
+composeHotReload = "1.0.0"
 composeMultiplatform = "1.9.3"
 
 jackson = "2.20.1"
@@ -10,7 +10,7 @@ koin = "4.1.1"
 koin-annotations = "2.3.1"
 retrofit = "3.0.0"
 postgresql = "42.7.8"
-bouncyCastle = "1.82"
+bouncyCastle = "1.83"
 jmimemagic = "0.1.5"
 commons-io = "2.21.0"
 
@@ -18,8 +18,10 @@ firebase-admin = "9.6.0"
 firebase-bom = "34.6.0"
 google-services = "4.4.4"
 
-ktor = "3.3.2"
-ktor-plugin = "3.3.2"
+ktor = "3.3.3"
+ktor-plugin = "3.3.3"
+
+jna = "5.12.0"
 
 agp = "8.12.3"
 logback = "1.5.21"
@@ -94,6 +96,8 @@ ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "kto
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-client-jackson = { module = "io.ktor:ktor-client-jackson", version.ref = "ktor" }
 ktor-client-websockets = { module = "io.ktor:ktor-client-websockets", version.ref = "ktor" }
+
+jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
 
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }

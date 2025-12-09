@@ -97,6 +97,7 @@ dependencies {
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.client.jackson)
     implementation(libs.ktor.client.websockets)
+    implementation(libs.jna)
     implementation(platform(libs.koin.bom))
     implementation(libs.koin.core)
     implementation(libs.koin.android)

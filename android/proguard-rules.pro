@@ -51,6 +51,8 @@
 -dontwarn org.joda.time.**
 -dontwarn org.shaded.apache.**
 -dontwarn org.ietf.jgss.**
+-keep class com.sun.jna.** { *; }
+-keep class * extends com.sun.jna.Library { *; }
 
 -keepattributes *Annotation*
 
@@ -93,6 +95,10 @@
     <init>(...);
 }
 
+-dontwarn java.awt.**
+-dontwarn java.beans.**
+-dontnote java.awt.**
+-dontnote java.beans.**
 -dontwarn org.ktorm.entity.Entity$Factory
 -dontwarn org.ktorm.entity.Entity
 -dontwarn org.ktorm.schema.SqlType
@@ -117,3 +123,22 @@
 
 -keep class org.bouncycastle.** { *; }
 -dontwarn org.bouncycastle.**
+
+-keep class io.ktor.client.engine.okhttp.** { *; }
+-keep class io.ktor.client.plugins.** { *; }
+-keep class io.ktor.serialization.jackson.** { *; }
+-keep class io.ktor.events.** { *; }
+-keep class io.ktor.websocket.** { *; }
+
+-keep class io.ktor.client.plugins.contentnegotiation.** { *; }
+
+-dontwarn okhttp3.**
+-dontwarn okio.**
+-keepattributes Signature
+-keepattributes *Annotation*
+-keep class okhttp3.** { *; }
+-keep interface okhttp3.** { *; }
+
+-keep class kotlinx.coroutines.internal.MainDispatcherFactory { *; }
+-keep class kotlinx.coroutines.android.AndroidExceptionPreHandler { *; }
+-keep class kotlinx.coroutines.android.AndroidDispatcherFactory { *; }

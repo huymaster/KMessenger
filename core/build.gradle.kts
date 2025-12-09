@@ -18,6 +18,7 @@ dependencies {
     implementation(libs.bouncyCastle)
     implementation(libs.bouncyCastle.bcpkix)
     implementation(platform(libs.koin.bom))
+    implementation(libs.jna)
     implementation(libs.koin.core)
     implementation(libs.koin.annotations)
     testImplementation(kotlin("test"))
