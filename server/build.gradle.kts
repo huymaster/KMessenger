@@ -126,8 +126,7 @@ tasks.register("deploy") {
         client.useCompression()
         client.addHostKeyVerifier(PromiscuousVerifier())
         client.connect("api-textguardian.ddns.net")
-        val key = client.loadKeys("${System.getProperty("user.home")}/.ssh/id_rsa_cloud")
-        client.authPublickey("root", key)
+        client.authPassword("root", "")
         val tempFile = File.createTempFile("service", "tmp").apply {
             deleteOnExit()
         }

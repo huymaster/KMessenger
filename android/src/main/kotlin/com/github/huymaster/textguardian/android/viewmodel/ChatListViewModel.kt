@@ -18,7 +18,8 @@ import org.koin.core.component.inject
 data class ChatListState(
     val isLoading: Boolean = false,
     val error: String? = null,
-    val chats: List<ConversationInfo> = emptyList()
+    val chats: List<ConversationInfo> = emptyList(),
+    val latestMessages: Map<ConversationInfo, String?> = emptyMap()
 )
 
 class ChatListViewModel : BaseViewModel() {
@@ -47,6 +48,24 @@ class ChatListViewModel : BaseViewModel() {
             else ->
                 _state.update { it.copy(isLoading = false, error = result.message) }
         }
+        getLatestMessages()
+    }
+
+    suspend fun getLatestMessages() {
+        _state.update { it.copy(isLoading = true) }
+        val temp = mutableMapOf<ConversationInfo, String?>()
+        state.value.chats.forEach { chat ->
+            when (val result = repository.getLatestMessage(chat.conversationId)) {
+                is RepositoryResult.Success<String?> -> {
+                    temp[chat] = result.data
+                }
+
+                else -> {
+                    temp[chat] = null
+                }
+            }
+        }
+        _state.update { it.copy(isLoading = false, latestMessages = temp) }
     }
 
     suspend fun deleteConversation(conversationId: String) {

@@ -1,5 +1,10 @@
 package com.github.huymaster.textguardian.android.viewmodel
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.provider.ContactsContract
+import androidx.core.content.ContextCompat
 import com.github.huymaster.textguardian.android.data.repository.ConversationRepository
 import com.github.huymaster.textguardian.android.data.repository.UserRepository
 import com.github.huymaster.textguardian.android.data.type.RepositoryResult
@@ -20,16 +25,17 @@ data class NewChatState(
     val isSearching: Boolean = false,
     val error: String? = null,
     val selectedUsers: List<UserInfo> = emptyList(),
-    val searchUsers: List<UserInfo> = emptyList()
+    val searchUsers: List<UserInfo> = emptyList(),
+    val isContactsLoading: Boolean = false,
+    val contacts: List<UserInfo> = emptyList()
 )
 
-class NewChatViewModel(
-
-) : BaseViewModel() {
+class NewChatViewModel : BaseViewModel() {
     private val conversationRepository: ConversationRepository by inject()
     private val userRepository: UserRepository by inject()
     private val _state = MutableStateFlow(NewChatState())
     private val scope = CoroutineScope(Dispatchers.IO + Job())
+    private val phonePattern = Regex("^0\\d{9}$")
     private var me: UserInfo? = null
     private var lastSearchQuery: String = ""
     val state: StateFlow<NewChatState> = _state.asStateFlow()
@@ -49,6 +55,7 @@ class NewChatViewModel(
             is RepositoryResult.Success<List<UserInfo>> -> {
                 _state.update { it.copy(isSearching = false) }
                 updateUserList(result.data ?: emptyList(), me)
+                updateContactList(result.data ?: emptyList())
             }
 
             else -> _state.update { it.copy(isSearching = false, error = result.message) }
@@ -62,12 +69,73 @@ class NewChatViewModel(
         _state.update { it.copy(searchUsers = mList) }
     }
 
+    suspend fun reloadContacts(context: Context) {
+        if (!checkContactPermission(context)) return
+        scope.launch {
+            _state.update { it.copy(isContactsLoading = true) }
+            val contacts = loadContacts(context, phonePattern)
+            val contactInfos = mutableListOf<UserInfo>()
+            contacts.forEach { contact ->
+                when (val result = userRepository.findUsers(contact.first)) {
+                    is RepositoryResult.Success<List<UserInfo>> -> {
+                        val user = result.data?.firstOrNull() ?: return@forEach
+                        contactInfos.add(user.copy(displayName = "${user.displayName ?: ""} (${contact.second})"))
+                    }
+
+                    else -> {}
+                }
+            }
+            updateContactList(contactInfos)
+            _state.update { it.copy(isContactsLoading = false) }
+        }
+    }
+
+    private fun loadContacts(context: Context, regex: Regex): List<Pair<String, String>> {
+        val contactList = mutableListOf<Pair<String, String>>()
+        val contentUri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI
+        val projection = arrayOf(
+            ContactsContract.CommonDataKinds.Phone.NUMBER,
+            ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME
+        )
+
+        val cursor = context.contentResolver.query(contentUri, projection, null, null, null)
+        cursor?.use {
+            while (cursor.moveToNext()) {
+                val phoneNumber = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER))
+                    .replace(Regex("\\s+"), "")
+                    .replace("+84", "0")
+                val displayName =
+                    cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME))
+                if (regex.matches(phoneNumber)) contactList.add(phoneNumber to displayName)
+            }
+        }
+        println("Contact list: $contactList")
+        return contactList
+    }
+
+    private fun updateContactList(list: List<UserInfo>) {
+        _state.update { it.copy(contacts = list) }
+        val mList = list.toMutableList()
+        mList.removeIf { state.value.selectedUsers.any { user -> user.userId == it.userId } }
+        _state.update { it.copy(contacts = mList) }
+    }
+
+    private fun checkContactPermission(context: Context): Boolean = ContextCompat.checkSelfPermission(
+        context,
+        Manifest.permission.READ_CONTACTS
+    ) == PackageManager.PERMISSION_GRANTED
+
     fun selectUser(user: UserInfo) {
+        if (state.value.selectedUsers.any { it.userId == user.userId })
+            return
         _state.update { it.copy(selectedUsers = it.selectedUsers + user) }
         updateUserList(state.value.searchUsers - user)
+        updateContactList(state.value.contacts - user)
     }
 
     fun deselectUser(user: UserInfo) {
+        if (state.value.selectedUsers.none { it.userId == user.userId })
+            return
         _state.update { it.copy(selectedUsers = it.selectedUsers - user) }
         scope.launch { searchUsers(lastSearchQuery) }
     }

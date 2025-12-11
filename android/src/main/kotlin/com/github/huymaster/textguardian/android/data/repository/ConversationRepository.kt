@@ -1,5 +1,6 @@
 package com.github.huymaster.textguardian.android.data.repository
 
+import com.github.huymaster.textguardian.android.app.CipherManager
 import com.github.huymaster.textguardian.android.app.JWTTokenManager
 import com.github.huymaster.textguardian.android.data.type.RepositoryResult
 import com.github.huymaster.textguardian.core.api.APIVersion1Service
@@ -11,6 +12,7 @@ import java.util.*
 
 class ConversationRepository(
     private val service: APIVersion1Service,
+    private val cipherManager: CipherManager,
     private val tokenManager: JWTTokenManager
 ) : KoinComponent {
     suspend fun getConversations(): RepositoryResult<List<ConversationInfo>> {
@@ -41,6 +43,26 @@ class ConversationRepository(
             val response = service.getConversation(token, conversationId)
             if (response.isSuccessful) {
                 RepositoryResult.Success(response.body())
+            } else {
+                RepositoryResult.Error(message = response.errorBody()?.string())
+            }
+        } catch (e: Exception) {
+            RepositoryResult.Error(message = e.message, throwable = e)
+        }
+    }
+
+    suspend fun getLatestMessage(conversationId: String): RepositoryResult<String?> {
+        return try {
+            val token = runCatching {
+                tokenManager.getAccessToken()!!
+            }.onFailure {
+                return RepositoryResult.Error()
+            }.getOrThrow()
+            val response = service.getMessages(token, conversationId, null)
+            if (response.isSuccessful) {
+                val msg = response.body()?.firstOrNull() ?: return RepositoryResult.Error()
+                val decripted = cipherManager.decrypt(msg)
+                RepositoryResult.Success(decripted)
             } else {
                 RepositoryResult.Error(message = response.errorBody()?.string())
             }

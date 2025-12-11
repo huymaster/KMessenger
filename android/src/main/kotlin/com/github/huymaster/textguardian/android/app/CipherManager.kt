@@ -60,7 +60,7 @@ class CipherManager(
 
     @SuppressLint("GetInstance")
     private fun getCipher() =
-        Cipher.getInstance("AES/GCM/NoPadding")
+        Cipher.getInstance("AES")
 
     fun encapsulation(keys: Collection<PublicKey>): Pair<SecretKey, List<ByteArray>> {
         val key: SecretKey = KeyGenerator.getInstance("AES")
