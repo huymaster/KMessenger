@@ -55,9 +55,7 @@ private suspend fun respondRes(call: ApplicationCall, file: String) {
         val extension = file.substringAfterLast(".", "")
         val type = typeMap[extension] ?: ContentType.Application.OctetStream
 
-        val cacheControl = when (type) {
-            else -> "no-cache"
-        }
+        val cacheControl = "no-cache"
 
         call.response.header(HttpHeaders.ETag, "\"$etag\"")
         call.response.header(HttpHeaders.CacheControl, cacheControl)
@@ -80,6 +78,8 @@ fun Application.configureRouting() {
                 HttpHeaders.ContentDisposition,
                 "attachment; filename=KMessenger.apk"
             )
+            call.response.header(HttpHeaders.ContentType, "application/vnd.android.package-archive")
+            call.response.header(HttpHeaders.CacheControl, "no-cache")
             val stream = classLoader.getResourceAsStream("android-release.apk")
             if (stream != null)
                 call.respondBytes(stream.readBytes())

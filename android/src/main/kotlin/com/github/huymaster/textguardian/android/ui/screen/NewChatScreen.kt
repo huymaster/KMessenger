@@ -127,6 +127,7 @@ private fun NewChatScreenContent(
             ) == PackageManager.PERMISSION_GRANTED
         )
     }
+
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->

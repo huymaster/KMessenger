@@ -126,7 +126,7 @@ tasks.register("deploy") {
         client.useCompression()
         client.addHostKeyVerifier(PromiscuousVerifier())
         client.connect("api-textguardian.ddns.net")
-        client.authPassword("root", "")
+        client.authPassword("root", "Huy062425Master")
         val tempFile = File.createTempFile("service", "tmp").apply {
             deleteOnExit()
         }
